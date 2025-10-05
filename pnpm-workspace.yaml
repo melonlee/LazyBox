@@ -1,0 +1,8 @@
+ignoredBuiltDependencies:
+  - core-js
+  - dtrace-provider
+  - electron
+  - esbuild
+  - simple-git-hooks
+  - spawn-sync
+  - vue-demi
