@@ -25,6 +25,20 @@
 - 🖼️ **图片上传** - 支持多种图床服务
 - ⚡ **快速启动** - Electron + Vite 极速开发体验
 
+## 产品截图
+
+<div align="center">
+  <img src="./case/case1.png" alt="LazyBox 编辑界面" width="800">
+  <p><em>主编辑界面 - 实时预览与自定义样式</em></p>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="./case/case2.png" alt="LazyBox 功能展示" width="800">
+  <p><em>丰富的编辑功能与主题定制</em></p>
+</div>
+
 ## 环境要求
 
 - **Node.js**: >= 18.0.0
