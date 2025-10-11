@@ -20,6 +20,9 @@ importers:
       electron-updater:
         specifier: ^6.3.9
         version: 6.6.2
+      path-browserify:
+        specifier: ^1.0.1
+        version: 1.0.1
     devDependencies:
       '@antfu/eslint-config':
         specifier: 3.11.0

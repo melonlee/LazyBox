@@ -118,3 +118,127 @@ export const initDocumentDir = async () => {
     setStore('woocs-first-run-4', '1');
   }
 }
+
+// 文件夹操作
+export const createFolder = async (dirPath: string, folderName: string) => {
+  try {
+    const folderPath = path.join(dirPath, folderName);
+    const isFolderExist = await checkIfDirExist(folderPath);
+    if (isFolderExist) {
+      return '';
+    }
+    await promiseFs.mkdir(folderPath, { recursive: true });
+    return folderPath;
+  } catch(e) {
+    console.log('createFolder error', dirPath, folderName, e);
+    return '';
+  }
+}
+
+export const renameFolder = async (oldPath: string, newPath: string) => {
+  try {
+    const isNewPathExist = await checkIfDirExist(newPath);
+    if (isNewPathExist) {
+      return '';
+    }
+    await promiseFs.rename(oldPath, newPath);
+    return newPath;
+  } catch(e) {
+    console.log('renameFolder error', oldPath, newPath, e);
+    return '';
+  }
+}
+
+export const removeFolder = async (folderPath: string) => {
+  try {
+    await promiseFs.rm(folderPath, { recursive: true, force: true });
+    return folderPath;
+  } catch(e) {
+    console.log('removeFolder error', folderPath, e);
+    return '';
+  }
+}
+
+// 移动文件或文件夹
+export const moveFileOrFolder = async (sourcePath: string, targetPath: string) => {
+  try {
+    await promiseFs.rename(sourcePath, targetPath);
+    return targetPath;
+  } catch(e) {
+    console.log('moveFileOrFolder error', sourcePath, targetPath, e);
+    return '';
+  }
+}
+
+// 复制文件
+export const copyFile = async (sourcePath: string, targetPath: string) => {
+  try {
+    await promiseFs.copyFile(sourcePath, targetPath);
+    return targetPath;
+  } catch(e) {
+    console.log('copyFile error', sourcePath, targetPath, e);
+    return '';
+  }
+}
+
+// 读取目录树（递归）
+export interface FileNodeData {
+  id: string
+  name: string
+  type: 'file' | 'folder'
+  path: string
+  parentId?: string
+  children?: FileNodeData[]
+  metadata?: {
+    createdAt: Date
+    updatedAt: Date
+    size?: number
+  }
+}
+
+export const readDirectoryTree = async (dirPath: string, parentId?: string): Promise<FileNodeData[]> => {
+  try {
+    const entries = await promiseFs.readdir(dirPath, { withFileTypes: true });
+    const nodes: FileNodeData[] = [];
+
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      const stats = await promiseFs.stat(fullPath);
+      
+      const nodeId = fullPath.replace(defaultAppDir, '').replace(/^\//, '');
+      
+      const node: FileNodeData = {
+        id: nodeId || 'root',
+        name: entry.name,
+        type: entry.isDirectory() ? 'folder' : 'file',
+        path: fullPath,
+        parentId,
+        metadata: {
+          createdAt: stats.birthtime,
+          updatedAt: stats.mtime,
+          size: stats.size,
+        }
+      };
+
+      if (entry.isDirectory()) {
+        node.children = await readDirectoryTree(fullPath, nodeId);
+      } else if (!entry.name.endsWith('.md')) {
+        // 跳过非 markdown 文件
+        continue;
+      }
+
+      nodes.push(node);
+    }
+
+    // 按类型（文件夹在前）和名称排序
+    return nodes.sort((a, b) => {
+      if (a.type !== b.type) {
+        return a.type === 'folder' ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name, 'zh-CN');
+    });
+  } catch(e) {
+    console.log('readDirectoryTree error', dirPath, e);
+    return [];
+  }
+}

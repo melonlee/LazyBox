@@ -374,7 +374,7 @@ onMounted(async () => {
     />
     <main class="container-main flex flex-1 flex-col">
       <div class="container-main-section border-radius-10 relative flex flex-1 overflow-hidden border-1">
-        <PostSlider />
+        <FileTreePanel />
         <div
           ref="codeMirrorWrapper"
           class="codeMirror-wrapper flex-1"

@@ -24,7 +24,8 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-store": "^8.2.0",
-    "electron-updater": "^6.3.9"
+    "electron-updater": "^6.3.9",
+    "path-browserify": "^1.0.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "3.11.0",

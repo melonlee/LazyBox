@@ -95,3 +95,38 @@ export interface Post {
   markdown: string
   accounts: PostAccount[]
 }
+
+// 文件系统节点类型
+export interface FileNode {
+  id: string
+  name: string
+  type: 'file' | 'folder'
+  path: string
+  parentId?: string
+  children?: FileNode[]
+  metadata?: FileMetadata
+}
+
+// 文件元数据
+export interface FileMetadata {
+  createdAt: Date
+  updatedAt: Date
+  tags?: string[]
+  starred?: boolean
+  wordCount?: number
+  size?: number
+}
+
+// 文件树操作类型
+export interface FileTreeState {
+  selectedId: string | null
+  expandedIds: Set<string>
+  searchQuery: string
+}
+
+// 文件操作选项
+export interface FileOperationOptions {
+  sourceId: string
+  targetId?: string
+  newName?: string
+}
