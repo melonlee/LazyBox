@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { useStore } from '@renderer/stores'
+import { useStore, useWorkspaceStore } from '@renderer/stores'
 import { useFileTreeStore } from '@renderer/stores/fileTree'
 import type { FileNode } from '@renderer/types'
 import FileTree from '@renderer/components/FileTree/FileTree.vue'
 import emitter from '@renderer/utils/event'
-import { FolderOpen, Folder, MoreVertical, X } from 'lucide-vue-next'
+import { MoreVertical, X } from 'lucide-vue-next'
 
 const store = useStore()
 const fileTreeStore = useFileTreeStore()
+const workspaceStore = useWorkspaceStore()
 
 // 面板可见性
 const isOpen = computed({
@@ -30,28 +31,13 @@ const renameValue = ref('')
 const currentNode = ref<FileNode | null>(null)
 const parentFolderForCreate = ref<FileNode | null>(null)
 
-// 打开工作区
-const handleOpenWorkspace = async () => {
-  await fileTreeStore.selectWorkspaceFolder()
-}
-
-// 打开最近的工作区
-const handleOpenRecentWorkspace = async (workspacePath: string) => {
-  await fileTreeStore.openWorkspace(workspacePath)
-}
-
 // 关闭工作区
 const handleCloseWorkspace = () => {
-  fileTreeStore.closeWorkspace()
+  workspaceStore.closeCurrentWorkspace()
 }
 
 // 加载文件树
 onMounted(async () => {
-  // 如果有当前工作区，则加载
-  if (fileTreeStore.currentWorkspace) {
-    await fileTreeStore.loadFileTree()
-  }
-  
   // 监听新建文件事件
   emitter.on('new-file', () => {
     handleCreateFile()
@@ -214,38 +200,8 @@ const debouncedSave = useDebounceFn(async (filePath: string, content: string) =>
         '-translate-x-full': !isOpen,
       }"
     >
-      <!-- 欢迎界面 -->
-      <div v-if="!fileTreeStore.currentWorkspace" class="welcome-screen">
-        <div class="welcome-content">
-          <h3 class="welcome-title">欢迎使用 LazyBox</h3>
-          <p class="welcome-desc">打开一个文件夹开始编辑</p>
-          
-          <Button class="open-folder-btn" @click="handleOpenWorkspace">
-            <FolderOpen class="mr-2 size-4" />
-            打开文件夹
-          </Button>
-
-          <!-- 最近打开的工作区 -->
-          <div v-if="fileTreeStore.recentWorkspaces.length > 0" class="recent-workspaces">
-            <h4 class="recent-title">最近打开</h4>
-            <div class="recent-list">
-              <button
-                v-for="workspace in fileTreeStore.recentWorkspaces"
-                :key="workspace"
-                class="recent-item"
-                @click="handleOpenRecentWorkspace(workspace)"
-              >
-                <Folder class="size-4" />
-                <span class="recent-path">{{ workspace }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 文件树 -->
       <FileTree
-        v-else
         :nodes="fileTreeStore.fileTree"
         :selected-id="fileTreeStore.selectedNode?.id"
         @select="handleSelectNode"
@@ -259,30 +215,14 @@ const debouncedSave = useDebounceFn(async (filePath: string, content: string) =>
         <template #toolbar>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
-              <Button size="xs" variant="ghost" title="工作区">
+              <Button size="xs" variant="ghost" :title="workspaceStore.currentWorkspace?.name || '工作区'">
                 <MoreVertical class="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem @click="handleOpenWorkspace">
-                <FolderOpen class="mr-2 size-4" />
-                打开文件夹
-              </DropdownMenuItem>
               <DropdownMenuItem @click="handleCloseWorkspace">
                 <X class="mr-2 size-4" />
                 关闭工作区
-              </DropdownMenuItem>
-              <DropdownMenuSeparator v-if="fileTreeStore.recentWorkspaces.length > 1" />
-              <DropdownMenuLabel v-if="fileTreeStore.recentWorkspaces.length > 1">
-                最近打开
-              </DropdownMenuLabel>
-              <DropdownMenuItem
-                v-for="workspace in fileTreeStore.recentWorkspaces.slice(0, 5)"
-                :key="workspace"
-                @click="handleOpenRecentWorkspace(workspace)"
-              >
-                <Folder class="mr-2 size-4" />
-                <span class="truncate text-xs">{{ workspace.split('/').pop() }}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

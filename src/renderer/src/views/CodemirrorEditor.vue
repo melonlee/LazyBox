@@ -172,7 +172,11 @@ watch(isDark, () => {
 
 // 初始化编辑器
 async function initEditor() {
-  const editorDom = document.querySelector<HTMLTextAreaElement>(`#editor`)!
+  const editorDom = document.querySelector<HTMLTextAreaElement>(`#editor`)
+  if (!editorDom) {
+    console.error('Editor DOM element not found')
+    return
+  }
 
   if (!editorDom.value) {
     editorDom.value = await window.$api.getPost(store.posts[store.currentPostIndex].title)

@@ -130,3 +130,21 @@ export interface FileOperationOptions {
   targetId?: string
   newName?: string
 }
+
+// 工作空间类型定义
+export interface Workspace {
+  id: string
+  name: string
+  path: string
+  lastOpened: string // ISO 8601 格式
+  createdAt: string  // ISO 8601 格式
+  icon?: string      // 可选的图标 emoji
+  description?: string // 可选的描述
+}
+
+// 工作空间状态
+export interface WorkspaceState {
+  workspaces: Workspace[]
+  currentWorkspaceId: string | null
+  recentWorkspaceIds: string[] // 最多保存 10 个
+}

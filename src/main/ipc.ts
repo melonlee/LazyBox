@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron'
+import { ipcMain, dialog, BrowserWindow, shell } from 'electron'
 import { 
   writeContent2File, 
   updateContent2File, 
@@ -11,7 +11,9 @@ import {
   removeFolder,
   moveFileOrFolder,
   copyFile,
-  readDirectoryTree
+  readDirectoryTree,
+  createDir,
+  checkIfDirExist
 } from './local'
 import * as path from 'path'
 
@@ -112,5 +114,50 @@ export const initIpcMain = () => {
 
   ipcMain.handle('copy-file', async (_, { sourcePath, targetPath }) => {
     return copyFile(sourcePath, targetPath);
+  })
+
+  // 工作空间相关 API
+  ipcMain.handle('create-workspace', async (_, { path: workspacePath }) => {
+    try {
+      console.log('[IPC] Creating workspace directory:', workspacePath);
+      const result = await createDir(workspacePath);
+      console.log('[IPC] Create directory result:', result);
+      const success = !!result;
+      console.log('[IPC] Returning success:', success);
+      return success;
+    } catch (error) {
+      console.error('[IPC] Failed to create workspace:', error);
+      return false;
+    }
+  })
+
+  ipcMain.handle('validate-workspace', async (_, { path: workspacePath }) => {
+    try {
+      const exists = await checkIfDirExist(workspacePath);
+      return exists;
+    } catch (error) {
+      console.error('Failed to validate workspace:', error);
+      return false;
+    }
+  })
+
+  ipcMain.handle('get-default-workspace-path', async () => {
+    return defaultAppDir;
+  })
+
+  ipcMain.handle('open-workspace-folder', async (_, { path: workspacePath }) => {
+    try {
+      await shell.openPath(workspacePath);
+    } catch (error) {
+      console.error('Failed to open workspace folder:', error);
+    }
+  })
+
+  // 更新窗口标题
+  ipcMain.handle('set-window-title', async (_, { title }) => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    if (focusedWindow) {
+      focusedWindow.setTitle(title);
+    }
   })
 }

@@ -1,5 +1,6 @@
 import type { FileNode } from '@renderer/types'
 import { defineStore } from 'pinia'
+import { useWorkspaceStore } from './workspace'
 import * as path from 'path-browserify'
 
 export const useFileTreeStore = defineStore('fileTree', () => {
@@ -9,56 +10,24 @@ export const useFileTreeStore = defineStore('fileTree', () => {
   // 当前选中的节点
   const selectedNode = ref<FileNode | null>(null)
   
-  // 当前工作区目录
-  const currentWorkspace = useStorage<string | null>('lazybox-current-workspace', null)
-  
-  // 最近打开的工作区列表
-  const recentWorkspaces = useStorage<string[]>('lazybox-recent-workspaces', [])
-  
   // 加载状态
   const isLoading = ref(false)
   
   // 错误信息
   const error = ref<string | null>(null)
 
-  // 选择工作区文件夹
-  const selectWorkspaceFolder = async () => {
-    try {
-      const folderPath = await window.$api.selectWorkspaceFolder()
-      if (folderPath) {
-        await openWorkspace(folderPath)
-        return folderPath
-      }
-      return ''
-    } catch (e) {
-      console.error('selectWorkspaceFolder error', e)
-      toast.error('选择文件夹失败')
-      return ''
-    }
-  }
+  // 获取 workspace store
+  const workspaceStore = useWorkspaceStore()
 
-  // 打开工作区
-  const openWorkspace = async (workspacePath: string) => {
-    currentWorkspace.value = workspacePath
-    
-    // 添加到最近打开列表（去重并保持在前面）
-    const filtered = recentWorkspaces.value.filter(w => w !== workspacePath)
-    recentWorkspaces.value = [workspacePath, ...filtered].slice(0, 10) // 最多保存 10 个
-    
-    await loadFileTree()
-    toast.success('工作区已打开')
-  }
-
-  // 关闭工作区
-  const closeWorkspace = () => {
-    currentWorkspace.value = null
-    fileTree.value = []
-    selectedNode.value = null
-  }
+  // 获取当前工作区路径
+  const currentWorkspacePath = computed(() => {
+    return workspaceStore.currentWorkspace?.path || ''
+  })
 
   // 加载文件树
   const loadFileTree = async () => {
-    if (!currentWorkspace.value) {
+    const workspacePath = currentWorkspacePath.value
+    if (!workspacePath) {
       fileTree.value = []
       return
     }
@@ -66,7 +35,7 @@ export const useFileTreeStore = defineStore('fileTree', () => {
     isLoading.value = true
     error.value = null
     try {
-      const tree = await window.$api.readDirectoryTree(currentWorkspace.value)
+      const tree = await window.$api.readDirectoryTree(workspacePath)
       fileTree.value = tree as any
     } catch (e) {
       error.value = '加载文件树失败'
@@ -76,6 +45,16 @@ export const useFileTreeStore = defineStore('fileTree', () => {
     }
   }
 
+  // 监听工作空间变化，自动加载文件树
+  watch(() => workspaceStore.currentWorkspaceId, (newId) => {
+    if (newId) {
+      loadFileTree()
+    } else {
+      fileTree.value = []
+      selectedNode.value = null
+    }
+  }, { immediate: true })
+
   // 选择节点
   const selectNode = (node: FileNode) => {
     selectedNode.value = node
@@ -83,12 +62,12 @@ export const useFileTreeStore = defineStore('fileTree', () => {
 
   // 获取当前工作区路径（用于创建文件/文件夹时的默认路径）
   const getWorkspacePath = () => {
-    return currentWorkspace.value || ''
+    return currentWorkspacePath.value
   }
 
   // 创建文件
   const createFile = async (parentPath: string, fileName: string) => {
-    if (!currentWorkspace.value) {
+    if (!currentWorkspacePath.value) {
       toast.error('请先打开一个工作区')
       return ''
     }
@@ -114,7 +93,7 @@ export const useFileTreeStore = defineStore('fileTree', () => {
 
   // 创建文件夹
   const createFolder = async (parentPath: string, folderName: string) => {
-    if (!currentWorkspace.value) {
+    if (!currentWorkspacePath.value) {
       toast.error('请先打开一个工作区')
       return ''
     }
@@ -319,13 +298,9 @@ export const useFileTreeStore = defineStore('fileTree', () => {
   return {
     fileTree,
     selectedNode,
-    currentWorkspace,
-    recentWorkspaces,
+    currentWorkspacePath,
     isLoading,
     error,
-    selectWorkspaceFolder,
-    openWorkspace,
-    closeWorkspace,
     getWorkspacePath,
     loadFileTree,
     selectNode,

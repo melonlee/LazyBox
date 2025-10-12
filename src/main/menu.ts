@@ -57,6 +57,7 @@ const template = [
           })
         }
       },
+      { type: 'separator' },
       {
         label: '导入 .md',
         accelerator: 'Shift+CmdOrCtrl+I',
@@ -66,7 +67,6 @@ const template = [
           })
         }
       },
-      { type: 'separator' },
       {
         label: '导出 .md',
         click: () => {
@@ -83,6 +83,16 @@ const template = [
           })
         }
        },
+      { type: 'separator' },
+      {
+        label: '关闭工作空间',
+        accelerator: 'Shift+CmdOrCtrl+W',
+        click: () => {
+          send2Render({
+            action: 'close-workspace'
+          })
+        }
+      },
       { type: 'separator' },
       isMac ? { role: 'close' } : { role: 'quit' },
       ...(

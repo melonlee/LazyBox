@@ -36,7 +36,21 @@ const api = {
   moveFileOrFolder: (sourcePath: string, targetPath: string) => 
     ipcRenderer.invoke('move-file-or-folder', { sourcePath, targetPath }),
   copyFile: (sourcePath: string, targetPath: string) => 
-    ipcRenderer.invoke('copy-file', { sourcePath, targetPath })
+    ipcRenderer.invoke('copy-file', { sourcePath, targetPath }),
+
+  // 工作空间 API
+  createWorkspace: (path: string) => 
+    ipcRenderer.invoke('create-workspace', { path }),
+  validateWorkspace: (path: string) => 
+    ipcRenderer.invoke('validate-workspace', { path }),
+  getDefaultWorkspacePath: () => 
+    ipcRenderer.invoke('get-default-workspace-path'),
+  openWorkspaceFolder: (path: string) => 
+    ipcRenderer.invoke('open-workspace-folder', { path }),
+  
+  // 窗口管理 API
+  setWindowTitle: (title: string) => 
+    ipcRenderer.invoke('set-window-title', { title })
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

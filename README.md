@@ -27,6 +27,13 @@
 ## 📸 产品截图
 
 <div align="center">
+  <img src="case/case-welcome.png" alt="LazyBox 欢迎界面" width="800">
+  <p><em>欢迎界面 - 优雅的工作空间管理</em></p>
+</div>
+
+<br>
+
+<div align="center">
   <img src="case/case1.png" alt="LazyBox 编辑界面" width="800">
   <p><em>主编辑界面 - 实时预览与自定义样式</em></p>
 </div>

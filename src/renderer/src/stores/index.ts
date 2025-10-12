@@ -9,6 +9,10 @@ import CodeMirror from 'codemirror'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
+// 导出其他 stores
+export { useWorkspaceStore } from './workspace'
+export { useFileTreeStore } from './fileTree'
+
 export const useStore = defineStore(`store`, () => {
   // 是否开启深色模式
   const isDark = useDark()
@@ -258,7 +262,12 @@ export const useStore = defineStore(`store`, () => {
   }
   // 初始化 CSS 编辑器
   onMounted(() => {
-    const cssEditorDom = document.querySelector<HTMLTextAreaElement>(`#cssEditor`)!
+    const cssEditorDom = document.querySelector<HTMLTextAreaElement>(`#cssEditor`)
+    if (!cssEditorDom) {
+      console.warn('CSS editor DOM element not found, skipping initialization')
+      return
+    }
+    
     cssEditorDom.value = getCurrentTab().content
     const theme = isDark.value ? `darcula` : `xq-light`
     cssEditor.value = markRaw(

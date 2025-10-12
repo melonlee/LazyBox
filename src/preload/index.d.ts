@@ -38,6 +38,15 @@ interface LazyBoxAPI {
   updateFile: (filePath: string, content: string) => Promise<string>
   moveFileOrFolder: (sourcePath: string, targetPath: string) => Promise<string>
   copyFile: (sourcePath: string, targetPath: string) => Promise<string>
+
+  // 工作空间 API
+  createWorkspace: (path: string) => Promise<boolean>
+  validateWorkspace: (path: string) => Promise<boolean>
+  getDefaultWorkspacePath: () => Promise<string>
+  openWorkspaceFolder: (path: string) => Promise<void>
+
+  // 窗口管理 API
+  setWindowTitle: (title: string) => Promise<void>
 }
 
 declare global {

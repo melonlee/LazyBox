@@ -36,9 +36,13 @@ export const checkIfFileExist = async (filename: string) => {
 
 export const createDir = async (dirname: string) => {
   const isDirExist = await checkIfDirExist(dirname);
-  if (isDirExist) return;
+  if (isDirExist) {
+    console.log('Directory already exists:', dirname);
+    return dirname; // 目录已存在，返回路径表示成功
+  }
   try {
     await promiseFs.mkdir(dirname, { recursive: true });
+    console.log('Directory created successfully:', dirname);
     return dirname;
   } catch(e) {
     console.log('mkdir error', e);
