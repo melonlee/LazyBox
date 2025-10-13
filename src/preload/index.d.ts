@@ -35,6 +35,8 @@ interface LazyBoxAPI {
   renameFile: (filePath: string, newName: string) => Promise<string>
   removeFile: (filePath: string) => Promise<string>
   readFile: (filePath: string) => Promise<string>
+  readImageAsBase64: (filePath: string) => Promise<string>
+  readPdfAsBase64: (filePath: string) => Promise<string>
   updateFile: (filePath: string, content: string) => Promise<string>
   moveFileOrFolder: (sourcePath: string, targetPath: string) => Promise<string>
   copyFile: (sourcePath: string, targetPath: string) => Promise<string>

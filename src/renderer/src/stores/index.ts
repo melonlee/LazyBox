@@ -67,6 +67,10 @@ export const useStore = defineStore(`store`, () => {
 
   // 视图模式：edit-编辑模式, split-分屏模式（默认编辑模式）
   const viewMode = ref<'edit' | 'split'>('edit')
+  
+  // 当前打开的文件类型和路径
+  const currentFileType = ref<'markdown' | 'image' | 'pdf' | 'other'>('markdown')
+  const currentFilePath = ref<string>('')
   // 内容列表
   const posts = useStorage(addPrefix(`posts`), [{
     title: '探索 Markdown',
@@ -532,6 +536,8 @@ export const useStore = defineStore(`store`, () => {
     isOpenPostSlider,
     isOpenRightSlider,
     viewMode,
+    currentFileType,
+    currentFilePath,
   }
 })
 

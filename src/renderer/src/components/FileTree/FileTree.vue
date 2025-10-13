@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FileNode } from '@renderer/types'
 import FileTreeNode from './FileTreeNode.vue'
-import { Search, Plus, FolderPlus, X } from 'lucide-vue-next'
+import { Search, X } from 'lucide-vue-next'
 
 interface Props {
   nodes: FileNode[]
@@ -224,15 +224,6 @@ defineExpose({
           <X class="size-4" />
         </button>
       </div>
-      <div class="action-buttons">
-        <slot name="toolbar" />
-        <Button size="xs" variant="ghost" title="新建文件" @click="handleCreateFile">
-          <Plus class="size-4" />
-        </Button>
-        <Button size="xs" variant="ghost" title="新建文件夹" @click="handleCreateFolder()">
-          <FolderPlus class="size-4" />
-        </Button>
-      </div>
     </div>
 
     <!-- 文件树 -->
@@ -302,15 +293,14 @@ defineExpose({
 }
 
 .search-bar {
-  padding: 8px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding: 8px 12px;
+  flex-shrink: 0;
 }
 
 .search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
 }
 
 .search-icon {
@@ -358,11 +348,6 @@ defineExpose({
 .clear-btn:hover {
   background-color: rgba(148, 163, 184, 0.1);
   color: #e2e8f0;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 4px;
 }
 
 .tree-container {

@@ -10,7 +10,7 @@ import DEFAULT_DOCUMENT_PATH from '../../resources/markdown.md?asset';
 
 const promiseFs = fs.promises;
 
-export const defaultAppDir = path.join(app.getPath('documents'), 'codes', 'woocs');
+export const defaultAppDir = path.join(app.getPath('documents'), 'codes', 'LazyBox');
 export const defaultDocumentName = '探索 Markdown';
 export const defaultDocumentPath = path.join(defaultAppDir, `${defaultDocumentName}.md`);
 
@@ -116,10 +116,10 @@ export const initDocumentDir = async () => {
   await createDir(defaultAppDir);
 
   // 如果第一次启动应用，则创建默认文件
-  if (!getStore('woocs-first-run-4')) {
+  if (!getStore('lazybox-first-run-4')) {
     const defaultFileContent = await promiseFs.readFile(DEFAULT_DOCUMENT_PATH, { encoding: 'utf-8' });
     writeContent2File(defaultAppDir, `${defaultDocumentName}.md`, defaultFileContent);
-    setStore('woocs-first-run-4', '1');
+    setStore('lazybox-first-run-4', '1');
   }
 }
 
@@ -206,6 +206,11 @@ export const readDirectoryTree = async (dirPath: string, parentId?: string): Pro
     const nodes: FileNodeData[] = [];
 
     for (const entry of entries) {
+      // 跳过隐藏文件（以.开头的文件）
+      if (entry.name.startsWith('.')) {
+        continue;
+      }
+      
       const fullPath = path.join(dirPath, entry.name);
       const stats = await promiseFs.stat(fullPath);
       
@@ -226,9 +231,6 @@ export const readDirectoryTree = async (dirPath: string, parentId?: string): Pro
 
       if (entry.isDirectory()) {
         node.children = await readDirectoryTree(fullPath, nodeId);
-      } else if (!entry.name.endsWith('.md')) {
-        // 跳过非 markdown 文件
-        continue;
       }
 
       nodes.push(node);

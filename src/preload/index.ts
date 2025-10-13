@@ -31,6 +31,10 @@ const api = {
     ipcRenderer.invoke('remove-file', { filePath }),
   readFile: (filePath: string) => 
     ipcRenderer.invoke('read-file', { filePath }),
+  readImageAsBase64: (filePath: string) => 
+    ipcRenderer.invoke('read-image-as-base64', { filePath }),
+  readPdfAsBase64: (filePath: string) => 
+    ipcRenderer.invoke('read-pdf-as-base64', { filePath }),
   updateFile: (filePath: string, content: string) => 
     ipcRenderer.invoke('update-file', { filePath, content }),
   moveFileOrFolder: (sourcePath: string, targetPath: string) => 

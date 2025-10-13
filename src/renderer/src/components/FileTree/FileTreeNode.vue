@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FileNode } from '@renderer/types'
-import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText, MoreVertical } from 'lucide-vue-next'
+import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText, Image, File, FileType } from 'lucide-vue-next'
 
 interface Props {
   node: FileNode
@@ -28,6 +28,27 @@ const emit = defineEmits<{
 
 const isFolder = computed(() => props.node.type === 'folder')
 const childrenCount = computed(() => props.node.children?.length || 0)
+
+// 获取文件扩展名
+const fileExtension = computed(() => {
+  if (isFolder.value) return ''
+  const parts = props.node.name.split('.')
+  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : ''
+})
+
+// 判断文件类型
+const isImageFile = computed(() => {
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico']
+  return imageExtensions.includes(fileExtension.value)
+})
+
+const isMarkdownFile = computed(() => {
+  return fileExtension.value === 'md' || fileExtension.value === 'markdown'
+})
+
+const isPdfFile = computed(() => {
+  return fileExtension.value === 'pdf'
+})
 
 const handleToggle = () => {
   if (isFolder.value) {
@@ -102,7 +123,10 @@ const paddingLeft = computed(() => `${props.level * 12 + 8}px`)
         <div class="node-icon">
           <FolderOpen v-if="isFolder && isExpanded" class="size-4 text-yellow-500" />
           <Folder v-else-if="isFolder" class="size-4 text-yellow-600" />
-          <FileText v-else class="size-4 text-blue-500" />
+          <Image v-else-if="isImageFile" class="size-4 text-green-500" />
+          <FileText v-else-if="isMarkdownFile" class="size-4 text-blue-500" />
+          <FileType v-else-if="isPdfFile" class="size-4 text-red-500" />
+          <File v-else class="size-4 text-gray-400" />
         </div>
 
         <span class="node-name line-clamp-1">{{ node.name }}</span>

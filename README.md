@@ -1,12 +1,13 @@
 # LazyBox
 
 <div align="center">
-  <img src="./resources/icon.png" alt="LazyBox Logo" width="120" height="120">
-  <p>基于 doocs/md 开发的微信 Markdown 编辑器桌面应用</p>
+  <h3>为内容创作者打造的桌面 Markdown 编辑器，支持工作区管理、分屏预览和微信公众号排版。</h3>
+  <br>
+  <h2><strong>📝 格式，本该如此简单。</strong></h2>
+  <br>
   <p>
     <a href="https://github.com/melonlee/LazyBox/releases">下载</a> •
     <a href="#快速开始">快速开始</a> •
-    <a href="./ROADMAP.md">开发路线图</a> •
     <a href="./WORKSPACE_USAGE.md">使用文档</a>
   </p>
 </div>
@@ -28,21 +29,28 @@
 
 <div align="center">
   <img src="case/case-welcome.png" alt="LazyBox 欢迎界面" width="800">
-  <p><em>欢迎界面 - 优雅的工作空间管理</em></p>
+  <p><em>欢迎界面 - 工作空间管理</em></p>
 </div>
 
 <br>
 
 <div align="center">
-  <img src="case/case1.png" alt="LazyBox 编辑界面" width="800">
-  <p><em>主编辑界面 - 实时预览与自定义样式</em></p>
+  <img src="case/editor-show.png" alt="LazyBox 编辑界面" width="800">
+  <p><em>编辑界面 - 实时预览与文件管理</em></p>
 </div>
 
 <br>
 
 <div align="center">
-  <img src="case/case2.png" alt="LazyBox 功能展示" width="800">
-  <p><em>丰富的编辑功能与主题定制</em></p>
+  <img src="case/split-show.png" alt="LazyBox 分屏模式" width="800">
+  <p><em>分屏模式 - 左右分屏编辑与预览</em></p>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="case/image-show.png" alt="LazyBox 图片预览" width="800">
+  <p><em>图片预览 - 支持多种文件类型</em></p>
 </div>
 
 ## 🚀 快速开始
@@ -95,34 +103,9 @@ pnpm build:linux  # Linux
 - **CodeMirror** - 代码编辑器
 - **TailwindCSS / UnoCSS** - CSS 框架
 
-## 🗺️ 开发路线图
-
-查看 **[ROADMAP.md](./ROADMAP.md)** 了解完整计划。
-
-### 近期计划
-
-#### Phase 1: 文件管理增强 (v0.2.0) ✅
-- ✅ 树形文件夹结构
-- ✅ 文件拖拽和移动
-- ✅ 文件搜索功能
-
-#### Phase 2: 编辑器布局重构 (v0.3.0) 🚧
-- 🚧 工作区模式系统（编辑/阅读/管理/图谱/专注）
-- 🚧 灵活的侧边面板
-- 🚧 多文件标签页
-- 🚧 知识图谱可视化
-
-#### Phase 3: AI 写作助手 (v0.4.0) 📋
-- 📋 AI 对话助手
-- 📋 主题和大纲生成
-- 📋 内容续写和改写
-- 📋 联网搜索
-- 📋 AI 生成配图
-
 ## 📖 文档
 
 - **[使用文档](./WORKSPACE_USAGE.md)** - 详细的使用说明
-- **[开发路线图](./ROADMAP.md)** - 功能规划和进度
 - **[架构设计](./ARCHITECTURE.md)** - 技术架构说明
 - **[更新日志](./CHANGELOG_v0.2.0.md)** - 版本更新记录
 

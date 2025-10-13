@@ -16,7 +16,7 @@ const template = [
         label: app.name,
         submenu: [
           {
-            label: 'About Woocs',
+            label: 'About LazyBox',
             click: () => {
               send2Render({
                 action: 'about'

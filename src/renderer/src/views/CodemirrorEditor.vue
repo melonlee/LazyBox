@@ -94,46 +94,119 @@ function onEditorRefresh() {
 
 const backLight = ref(false)
 const isCoping = ref(false)
+const imageBase64 = ref<string>('')
+const pdfBase64 = ref<string>('')
 
 function startCopy() {
   isCoping.value = true
   backLight.value = true
 }
 
+// 加载图片
+const loadImage = async (filePath: string) => {
+  try {
+    imageBase64.value = ''  // 先清空
+    const base64Data = await window.$api.readImageAsBase64(filePath)
+    imageBase64.value = base64Data
+  } catch (error) {
+    console.error('Failed to load image:', error)
+    toast.error(`无法加载图片: ${error?.message || '未知错误'}`)
+  }
+}
+
+// 加载 PDF
+const loadPdf = async (filePath: string) => {
+  try {
+    pdfBase64.value = ''  // 先清空
+    const base64Data = await window.$api.readPdfAsBase64(filePath)
+    pdfBase64.value = base64Data
+  } catch (error) {
+    console.error('Failed to load PDF:', error)
+    toast.error(`无法加载 PDF: ${error?.message || '未知错误'}`)
+  }
+}
+
+// 在系统默认应用中打开 PDF
+const openPdfExternally = async () => {
+  if (store.currentFilePath && store.currentFileType === 'pdf') {
+    try {
+      await window.electron.shell.openPath(store.currentFilePath)
+    } catch (error) {
+      console.error('Failed to open PDF externally:', error)
+      toast.error('无法打开 PDF 文件')
+    }
+  }
+}
+
+// 监听当前文件变化
+watch([() => store.currentFilePath, () => store.currentFileType], async ([newPath, newType]) => {
+  if (newType === 'image' && newPath) {
+    await loadImage(newPath)
+    pdfBase64.value = ''  // 清空 PDF 数据
+  } else if (newType === 'pdf' && newPath) {
+    await loadPdf(newPath)
+    imageBase64.value = ''  // 清空图片数据
+  } else {
+    imageBase64.value = ''  // 清空图片数据
+    pdfBase64.value = ''  // 清空 PDF 数据
+  }
+}, { immediate: true })
+
 // 可调整大小的分隔条
 const editorWidth = useStorage('editor-width-percentage', 50) // 默认50%
-const isDragging = ref(false)
+const fileTreeWidth = useStorage('file-tree-width', 250) // 文件树宽度，默认250px
+const isDraggingEditor = ref(false)
+const isDraggingFileTree = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
 
-const handleMouseDown = () => {
-  isDragging.value = true
+// 编辑器分隔条
+const handleEditorMouseDown = () => {
+  isDraggingEditor.value = true
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+// 文件树分隔条
+const handleFileTreeMouseDown = () => {
+  isDraggingFileTree.value = true
   document.body.style.cursor = 'col-resize'
   document.body.style.userSelect = 'none'
 }
 
 const handleMouseMove = (e: MouseEvent) => {
-  if (!isDragging.value || !containerRef.value) return
+  if (!containerRef.value) return
   
   const containerRect = containerRef.value.getBoundingClientRect()
   const offsetX = e.clientX - containerRect.left
   
-  // 计算文件树宽度
-  const fileTreeWidth = store.isOpenPostSlider ? 250 : 0
+  // 拖动文件树分隔条
+  if (isDraggingFileTree.value && store.isOpenPostSlider) {
+    let width = offsetX
+    // 限制范围在 200px - 500px
+    width = Math.max(200, Math.min(500, width))
+    fileTreeWidth.value = width
+  }
   
-  // 可用宽度（减去文件树和其他固定宽度）
-  const availableWidth = containerRect.width - fileTreeWidth
-  
-  // 计算百分比（相对于可用宽度）
-  let percentage = ((offsetX - fileTreeWidth) / availableWidth) * 100
-  
-  // 限制范围在 20% - 80%
-  percentage = Math.max(20, Math.min(80, percentage))
-  
-  editorWidth.value = percentage
+  // 拖动编辑器分隔条
+  if (isDraggingEditor.value) {
+    const currentFileTreeWidth = store.isOpenPostSlider ? fileTreeWidth.value : 0
+    
+    // 可用宽度（减去文件树和其他固定宽度）
+    const availableWidth = containerRect.width - currentFileTreeWidth
+    
+    // 计算百分比（相对于可用宽度）
+    let percentage = ((offsetX - currentFileTreeWidth) / availableWidth) * 100
+    
+    // 限制范围在 20% - 80%
+    percentage = Math.max(20, Math.min(80, percentage))
+    
+    editorWidth.value = percentage
+  }
 }
 
 const handleMouseUp = () => {
-  isDragging.value = false
+  isDraggingEditor.value = false
+  isDraggingFileTree.value = false
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
 }
@@ -275,9 +348,9 @@ async function initEditor() {
     changeTimer.value = setTimeout(async () => {
       onEditorRefresh()
       
-      // 保存到文件树系统
-      if (fileTreeStore.selectedNode?.type === 'file') {
-        const content = e.getValue()
+      // 保存到文件树系统 - 只对 markdown 文件进行自动保存，避免覆盖图片/PDF等二进制文件
+      if (fileTreeStore.selectedNode?.type === 'file' && store.currentFileType === 'markdown') {
+      const content = e.getValue()
         await fileTreeStore.updateFileContent(fileTreeStore.selectedNode.path, content)
       }
     }, 300)
@@ -438,7 +511,17 @@ onMounted(async () => {
         ref="containerRef"
         class="container-main-section border-radius-10 relative flex flex-1 overflow-hidden border-1"
       >
-        <FileTreePanel />
+        <FileTreePanel :width="fileTreeWidth" />
+        
+        <!-- 文件树和编辑器之间的分隔条 -->
+        <div 
+          v-show="store.isOpenPostSlider"
+          class="resize-handle"
+          @mousedown="handleFileTreeMouseDown"
+        >
+          <div class="resize-handle-line" />
+        </div>
+        
         <div
           ref="codeMirrorWrapper"
           class="codeMirror-wrapper editor-border relative"
@@ -482,16 +565,55 @@ onMounted(async () => {
             </TooltipProvider>
           </div>
           
+          <!-- 图片预览 -->
+          <div v-show="store.currentFileType === 'image'" class="h-full image-preview-container">
+            <div class="image-preview-wrapper">
+              <div class="image-preview-header">
+                <h3 class="image-file-name">{{ store.currentFilePath.split('/').pop() }}</h3>
+                <span class="image-file-path">{{ store.currentFilePath }}</span>
+              </div>
+              <div class="image-preview-content">
+                <img v-if="imageBase64" :src="imageBase64" alt="Image preview" class="preview-image" />
+                <div v-else class="image-loading">加载中...</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- PDF 预览 -->
+          <div v-show="store.currentFileType === 'pdf'" class="h-full pdf-preview-container">
+            <div class="pdf-preview-wrapper">
+              <div class="pdf-preview-header">
+                <div class="pdf-header-info">
+                  <h3 class="pdf-file-name">{{ store.currentFilePath.split('/').pop() }}</h3>
+                  <span class="pdf-file-path">{{ store.currentFilePath }}</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  @click="openPdfExternally"
+                  class="open-external-btn"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" x2="21" y1="14" y2="3"></line></svg>
+                  在系统中打开
+                </Button>
+              </div>
+              <div class="pdf-preview-content">
+                <iframe v-if="pdfBase64" :src="pdfBase64" class="pdf-viewer" />
+                <div v-else class="pdf-loading">加载中...</div>
+              </div>
+            </div>
+          </div>
+          
           <!-- 编辑器 -->
-          <div v-show="store.viewMode === 'edit' || store.viewMode === 'split'" class="h-full">
-            <ContextMenu>
-              <ContextMenuTrigger>
-                <textarea
-                  id="editor"
-                  type="textarea"
-                  placeholder="Your markdown text here."
-                />
-              </ContextMenuTrigger>
+          <div v-show="store.currentFileType !== 'image' && store.currentFileType !== 'pdf' && (store.viewMode === 'edit' || store.viewMode === 'split')" class="h-full">
+          <ContextMenu>
+            <ContextMenuTrigger>
+              <textarea
+                id="editor"
+                type="textarea"
+                placeholder="Your markdown text here."
+              />
+            </ContextMenuTrigger>
             <ContextMenuContent class="w-64">
               <ContextMenuItem inset @click="toggleShowUploadImgDialog()">
                 上传图片
@@ -520,15 +642,15 @@ onMounted(async () => {
                 <ContextMenuShortcut>{{ altSign }} + {{ shiftSign }} + F</ContextMenuShortcut>
               </ContextMenuItem>
             </ContextMenuContent>
-            </ContextMenu>
-          </div>
+          </ContextMenu>
+        </div>
         </div>
         
         <!-- 可拖动的分隔条（仅在分屏模式显示） -->
         <div 
           v-show="store.viewMode === 'split'"
           class="resize-handle"
-          @mousedown="handleMouseDown"
+          @mousedown="handleEditorMouseDown"
         >
           <div class="resize-handle-line" />
         </div>
@@ -780,5 +902,167 @@ onMounted(async () => {
 body.dragging {
   cursor: col-resize !important;
   user-select: none !important;
+}
+
+// 图片预览
+.image-preview-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  overflow: auto;
+  
+  // 美化滚动条
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(26, 35, 50, 0.3);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.2);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.4);
+  }
+}
+
+.image-preview-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  padding: 2rem;
+}
+
+.image-preview-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  
+  .image-file-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .image-file-path {
+    font-size: 0.875rem;
+    color: #94a3b8;
+  }
+}
+
+.image-preview-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(51, 65, 85, 0.3);
+  border-radius: 12px;
+  padding: 2rem;
+  min-height: 400px;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.image-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 1rem;
+  min-height: 200px;
+}
+
+// PDF 预览样式
+.pdf-preview-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.pdf-preview-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-preview-header {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  
+  .pdf-header-info {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .pdf-file-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .pdf-file-path {
+    font-size: 0.875rem;
+    color: #94a3b8;
+  }
+  
+  .open-external-btn {
+    background-color: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #e2e8f0;
+    
+    &:hover {
+      background-color: rgba(139, 92, 246, 0.2);
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+  }
+}
+
+.pdf-preview-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(51, 65, 85, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.pdf-viewer {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+.pdf-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 1rem;
+  min-height: 400px;
 }
 </style>

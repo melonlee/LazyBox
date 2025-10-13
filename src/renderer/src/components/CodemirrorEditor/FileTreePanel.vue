@@ -4,7 +4,12 @@ import { useFileTreeStore } from '@renderer/stores/fileTree'
 import type { FileNode } from '@renderer/types'
 import FileTree from '@renderer/components/FileTree/FileTree.vue'
 import emitter from '@renderer/utils/event'
-import { MoreVertical, X } from 'lucide-vue-next'
+import { MoreVertical, X, RefreshCw, Plus, FolderPlus } from 'lucide-vue-next'
+import { toast } from '@renderer/utils/toast'
+
+const props = defineProps<{
+  width?: number
+}>()
 
 const store = useStore()
 const fileTreeStore = useFileTreeStore()
@@ -36,6 +41,37 @@ const handleCloseWorkspace = () => {
   workspaceStore.closeCurrentWorkspace()
 }
 
+// 切换工作区
+const handleWorkspaceChange = async (workspaceId: string) => {
+  if (!workspaceId || workspaceId === workspaceStore.currentWorkspaceId) {
+    return
+  }
+  
+  const workspace = workspaceStore.setCurrentWorkspace(workspaceId)
+  if (workspace) {
+    // 重新加载文件树
+    await fileTreeStore.loadFileTree()
+    toast.success(`已切换到工作区：${workspace.name}`)
+  }
+}
+
+// 刷新文件树
+const isRefreshing = ref(false)
+const handleRefreshFileTree = async () => {
+  if (isRefreshing.value) return
+  
+  isRefreshing.value = true
+  try {
+    await fileTreeStore.loadFileTree()
+    toast.success('文件树已刷新')
+  } catch (error) {
+    console.error('Failed to refresh file tree:', error)
+    toast.error('刷新文件树失败')
+  } finally {
+    isRefreshing.value = false
+  }
+}
+
 // 加载文件树
 onMounted(async () => {
   // 监听新建文件事件
@@ -48,15 +84,59 @@ onUnmounted(() => {
   emitter.off('new-file')
 })
 
+// 判断文件类型
+const getFileType = (filename: string): 'markdown' | 'image' | 'pdf' | 'other' => {
+  const ext = filename.split('.').pop()?.toLowerCase() || ''
+  
+  if (ext === 'md' || ext === 'markdown') {
+    return 'markdown'
+  }
+  
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico']
+  if (imageExtensions.includes(ext)) {
+    return 'image'
+  }
+  
+  if (ext === 'pdf') {
+    return 'pdf'
+  }
+  
+  return 'other'
+}
+
 // 选择文件
 const handleSelectNode = async (node: FileNode) => {
   if (node.type === 'file') {
     fileTreeStore.selectNode(node)
     
-    // 读取文件内容并显示在编辑器中
-    const content = await fileTreeStore.readFileContent(node.path)
-    if (store.editor) {
-      toRaw(store.editor).setValue(content)
+    const fileType = getFileType(node.name)
+    store.currentFileType = fileType
+    store.currentFilePath = node.path
+    
+    // 根据文件类型处理
+    if (fileType === 'markdown') {
+      // Markdown文件：读取内容并显示在编辑器中
+      const content = await fileTreeStore.readFileContent(node.path)
+      if (store.editor) {
+        toRaw(store.editor).setValue(content)
+      }
+    } else if (fileType === 'image' || fileType === 'pdf') {
+      // 图片文件或PDF文件：不需要读取内容到编辑器，由视图组件处理预览
+      // 清空编辑器内容
+      if (store.editor) {
+        toRaw(store.editor).setValue('')
+      }
+    } else {
+      // 其他文件：尝试作为文本读取
+      try {
+        const content = await fileTreeStore.readFileContent(node.path)
+        if (store.editor) {
+          toRaw(store.editor).setValue(content)
+        }
+      } catch (e) {
+        console.error('Failed to read file:', e)
+        toast.error('无法读取该文件')
+      }
     }
   }
 }
@@ -186,6 +266,83 @@ const getDefaultAppDir = () => {
         '-translate-x-full': !isOpen,
       }"
     >
+      <!-- 工作区标题栏 -->
+      <div class="workspace-header">
+        <Select 
+          :model-value="workspaceStore.currentWorkspaceId || undefined"
+          @update:model-value="handleWorkspaceChange"
+        >
+          <SelectTrigger class="workspace-select">
+            <SelectValue :placeholder="workspaceStore.currentWorkspace?.name || '选择工作区'" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem 
+              v-for="workspace in workspaceStore.workspaces" 
+              :key="workspace.id"
+              :value="workspace.id"
+            >
+              <div class="workspace-item">
+                <span v-if="workspace.icon" class="workspace-icon">{{ workspace.icon }}</span>
+                <span class="workspace-item-name">{{ workspace.name }}</span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <div class="workspace-actions">
+          <TooltipProvider :delay-duration="200">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button 
+                  size="xs" 
+                  variant="ghost" 
+                  @click="handleRefreshFileTree"
+                  :disabled="isRefreshing"
+                >
+                  <RefreshCw class="size-4" :class="{ 'animate-spin': isRefreshing }" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">刷新</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider :delay-duration="200">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button size="xs" variant="ghost" @click="handleCreateFile(null)">
+                  <Plus class="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">新建文件</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider :delay-duration="200">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button size="xs" variant="ghost" @click="handleCreateFolder(null)">
+                  <FolderPlus class="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">新建文件夹</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button size="xs" variant="ghost">
+                <MoreVertical class="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @click="handleCloseWorkspace">
+                <X class="mr-2 size-4" />
+                关闭工作区
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      
       <!-- 文件树 -->
       <FileTree
         :nodes="fileTreeStore.fileTree"
@@ -197,23 +354,7 @@ const getDefaultAppDir = () => {
         @delete-node="handleDelete"
         @move-node="handleMoveNode"
         @copy-node="handleCopyNode"
-      >
-        <template #toolbar>
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <Button size="xs" variant="ghost" :title="workspaceStore.currentWorkspace?.name || '工作区'">
-                <MoreVertical class="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem @click="handleCloseWorkspace">
-                <X class="mr-2 size-4" />
-                关闭工作区
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </template>
-      </FileTree>
+      />
     </div>
 
     <!-- 创建文件对话框 -->
@@ -303,11 +444,11 @@ const getDefaultAppDir = () => {
 .file-tree-panel {
   overflow: hidden;
   background-color: transparent;
-  transition: width 0.3s ease;
+  flex-shrink: 0;
 }
 
 .file-tree-panel.is-open {
-  width: 250px;
+  width: v-bind('`${width || 250}px`');
 }
 
 .file-tree-panel:not(.is-open) {
@@ -316,12 +457,73 @@ const getDefaultAppDir = () => {
 
 .panel-content {
   height: 100%;
-  width: 250px;
+  width: v-bind('`${width || 250}px`');
   overflow: hidden;
-  border-right: 1px solid rgba(148, 163, 184, 0.15);
-  padding: 8px;
   transition: transform 0.3s ease;
   background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 工作区标题栏 */
+.workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.workspace-select {
+  flex: 1;
+  height: 32px;
+  min-width: 0;
+  background-color: transparent;
+  border: none;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0 4px;
+  
+  &:hover {
+    background-color: rgba(139, 92, 246, 0.1);
+  }
+  
+  &:focus {
+    ring: 2px;
+    ring-color: rgba(139, 92, 246, 0.3);
+  }
+  
+  :deep(svg) {
+    color: #94a3b8;
+  }
+}
+
+.workspace-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.workspace-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 /* 欢迎界面 */

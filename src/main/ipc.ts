@@ -16,6 +16,7 @@ import {
   checkIfDirExist
 } from './local'
 import * as path from 'path'
+import * as fs from 'fs/promises'
 
 export const initIpcMain = () => {
   // 旧版文件操作（保留向后兼容）
@@ -100,6 +101,66 @@ export const initIpcMain = () => {
     const dirName = path.dirname(filePath);
     const fileName = path.basename(filePath);
     return getFileContent(dirName, fileName);
+  })
+
+  ipcMain.handle('read-image-as-base64', async (_, { filePath }) => {
+    try {
+      // 检查文件状态
+      const stats = await fs.stat(filePath);
+      
+      if (!stats.isFile()) {
+        throw new Error(`Not a file: ${filePath}`);
+      }
+      
+      if (stats.size === 0) {
+        throw new Error(`File is empty: ${filePath}`);
+      }
+      
+      // 读取文件并转换为 base64
+      const buffer = await fs.readFile(filePath);
+      const ext = path.extname(filePath).toLowerCase().slice(1);
+      
+      const mimeTypes: Record<string, string> = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'bmp': 'image/bmp',
+        'webp': 'image/webp',
+        'svg': 'image/svg+xml',
+        'ico': 'image/x-icon'
+      };
+      
+      const mimeType = mimeTypes[ext] || 'image/png';
+      const base64 = buffer.toString('base64');
+      return `data:${mimeType};base64,${base64}`;
+    } catch (error) {
+      console.error('Failed to read image:', error);
+      throw error;
+    }
+  })
+
+  ipcMain.handle('read-pdf-as-base64', async (_, { filePath }) => {
+    try {
+      // 检查文件状态
+      const stats = await fs.stat(filePath);
+      
+      if (!stats.isFile()) {
+        throw new Error(`Not a file: ${filePath}`);
+      }
+      
+      if (stats.size === 0) {
+        throw new Error(`File is empty: ${filePath}`);
+      }
+      
+      // 读取 PDF 文件并转换为 base64
+      const buffer = await fs.readFile(filePath);
+      const base64 = buffer.toString('base64');
+      return `data:application/pdf;base64,${base64}`;
+    } catch (error) {
+      console.error('Failed to read PDF:', error);
+      throw error;
+    }
   })
 
   ipcMain.handle('update-file', async (_, { filePath, content }) => {
