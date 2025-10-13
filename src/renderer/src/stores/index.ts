@@ -64,6 +64,9 @@ export const useStore = defineStore(`store`, () => {
   const isOpenRightSlider = useStorage(addPrefix(`is_open_right_slider`), false)
 
   const isOpenPostSlider = useStorage(addPrefix(`is_open_post_slider`), true)
+
+  // 视图模式：edit-编辑模式, split-分屏模式（默认编辑模式）
+  const viewMode = ref<'edit' | 'split'>('edit')
   // 内容列表
   const posts = useStorage(addPrefix(`posts`), [{
     title: '探索 Markdown',
@@ -528,6 +531,7 @@ export const useStore = defineStore(`store`, () => {
     delPost,
     isOpenPostSlider,
     isOpenRightSlider,
+    viewMode,
   }
 })
 

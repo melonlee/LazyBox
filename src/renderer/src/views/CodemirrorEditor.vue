@@ -100,6 +100,54 @@ function startCopy() {
   backLight.value = true
 }
 
+// 可调整大小的分隔条
+const editorWidth = useStorage('editor-width-percentage', 50) // 默认50%
+const isDragging = ref(false)
+const containerRef = ref<HTMLElement | null>(null)
+
+const handleMouseDown = () => {
+  isDragging.value = true
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isDragging.value || !containerRef.value) return
+  
+  const containerRect = containerRef.value.getBoundingClientRect()
+  const offsetX = e.clientX - containerRect.left
+  
+  // 计算文件树宽度
+  const fileTreeWidth = store.isOpenPostSlider ? 250 : 0
+  
+  // 可用宽度（减去文件树和其他固定宽度）
+  const availableWidth = containerRect.width - fileTreeWidth
+  
+  // 计算百分比（相对于可用宽度）
+  let percentage = ((offsetX - fileTreeWidth) / availableWidth) * 100
+  
+  // 限制范围在 20% - 80%
+  percentage = Math.max(20, Math.min(80, percentage))
+  
+  editorWidth.value = percentage
+}
+
+const handleMouseUp = () => {
+  isDragging.value = false
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
+
+onMounted(() => {
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseup', handleMouseUp)
+})
+
 // 拷贝结束
 function endCopy() {
   backLight.value = false
@@ -367,6 +415,13 @@ onMounted(async () => {
   await initEditor()
   onEditorRefresh()
   mdLocalToRemote()
+  
+  // 延迟绑定滚动事件，确保DOM已渲染
+  setTimeout(() => {
+    if (store.viewMode === 'split') {
+      leftAndRightScroll()
+    }
+  }, 300)
 })
 </script>
 
@@ -379,23 +434,64 @@ onMounted(async () => {
       @end-copy="endCopy"
     />
     <main class="container-main flex flex-1 flex-col">
-      <div class="container-main-section border-radius-10 relative flex flex-1 overflow-hidden border-1">
+      <div 
+        ref="containerRef"
+        class="container-main-section border-radius-10 relative flex flex-1 overflow-hidden border-1"
+      >
         <FileTreePanel />
         <div
           ref="codeMirrorWrapper"
-          class="codeMirror-wrapper flex-1 editor-border"
+          class="codeMirror-wrapper editor-border relative"
           :class="{
             'order-1': !store.isEditOnLeft,
           }"
+          :style="store.viewMode === 'split' ? { width: `${editorWidth}%` } : { flex: 1 }"
         >
-          <ContextMenu>
-            <ContextMenuTrigger>
-              <textarea
-                id="editor"
-                type="textarea"
-                placeholder="Your markdown text here."
-              />
-            </ContextMenuTrigger>
+          <!-- 视图模式切换按钮 -->
+          <div class="view-mode-toggle">
+            <TooltipProvider :delay-duration="200">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    :class="{ 'active': store.viewMode === 'edit' }"
+                    @click="store.viewMode = 'edit'"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">编辑模式</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider :delay-duration="200">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    :class="{ 'active': store.viewMode === 'split' }"
+                    @click="store.viewMode = 'split'"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></svg>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">分屏模式</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          <!-- 编辑器 -->
+          <div v-show="store.viewMode === 'edit' || store.viewMode === 'split'" class="h-full">
+            <ContextMenu>
+              <ContextMenuTrigger>
+                <textarea
+                  id="editor"
+                  type="textarea"
+                  placeholder="Your markdown text here."
+                />
+              </ContextMenuTrigger>
             <ContextMenuContent class="w-64">
               <ContextMenuItem inset @click="toggleShowUploadImgDialog()">
                 上传图片
@@ -424,12 +520,25 @@ onMounted(async () => {
                 <ContextMenuShortcut>{{ altSign }} + {{ shiftSign }} + F</ContextMenuShortcut>
               </ContextMenuItem>
             </ContextMenuContent>
-          </ContextMenu>
+            </ContextMenu>
+          </div>
         </div>
+        
+        <!-- 可拖动的分隔条（仅在分屏模式显示） -->
+        <div 
+          v-show="store.viewMode === 'split'"
+          class="resize-handle"
+          @mousedown="handleMouseDown"
+        >
+          <div class="resize-handle-line" />
+        </div>
+        
         <div
+          v-show="store.viewMode === 'split'"
           id="preview"
           ref="preview"
-          class="preview-wrapper flex-1 p-5"
+          class="preview-wrapper p-5"
+          :style="{ width: `${100 - editorWidth}%` }"
         >
           <div id="output-wrapper" :class="{ output_night: !backLight }">
             <div class="preview border-x-1 shadow-xl">
@@ -595,5 +704,81 @@ onMounted(async () => {
 
 .footer-stats {
   color: #94a3b8;
+}
+
+// 视图模式切换按钮
+.view-mode-toggle {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  background: rgba(51, 65, 85, 0.9);
+  backdrop-filter: blur(12px);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  
+  :deep(button) {
+    color: #94a3b8;
+    padding: 6px;
+    height: auto;
+    min-width: 32px;
+    
+    &:hover {
+      background-color: rgba(139, 92, 246, 0.2);
+      color: #e2e8f0;
+    }
+    
+    &.active {
+      background-color: rgba(139, 92, 246, 0.3);
+      color: #a78bfa;
+    }
+  }
+}
+
+// 可拖动的分隔条
+.resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  background-color: transparent;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(139, 92, 246, 0.2);
+    
+    .resize-handle-line {
+      opacity: 1;
+      background-color: rgba(139, 92, 246, 0.6);
+    }
+  }
+  
+  &:active {
+    background-color: rgba(139, 92, 246, 0.3);
+  }
+}
+
+.resize-handle-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 40px;
+  background-color: rgba(148, 163, 184, 0.3);
+  border-radius: 2px;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+// 拖动时的全局样式
+body.dragging {
+  cursor: col-resize !important;
+  user-select: none !important;
 }
 </style>
