@@ -170,20 +170,6 @@ const handleCopyNode = async (sourceNode: FileNode, targetNode: FileNode) => {
 const getDefaultAppDir = () => {
   return fileTreeStore.getWorkspacePath()
 }
-
-// 保存当前文件（集成到编辑器的保存逻辑）
-watch(() => store.editor?.getValue(), () => {
-  // 自动保存当前文件
-  if (fileTreeStore.selectedNode?.type === 'file' && store.editor) {
-    const content = store.editor.getValue()
-    // 使用防抖避免频繁保存
-    debouncedSave(fileTreeStore.selectedNode.path, content)
-  }
-})
-
-const debouncedSave = useDebounceFn(async (filePath: string, content: string) => {
-  await fileTreeStore.updateFileContent(filePath, content)
-}, 1000)
 </script>
 
 <template>
@@ -316,7 +302,7 @@ const debouncedSave = useDebounceFn(async (filePath: string, content: string) =>
 <style scoped>
 .file-tree-panel {
   overflow: hidden;
-  background-color: rgb(249 250 251 / 0.2);
+  background-color: transparent;
   transition: width 0.3s ease;
 }
 
@@ -328,21 +314,14 @@ const debouncedSave = useDebounceFn(async (filePath: string, content: string) =>
   width: 0;
 }
 
-.dark .file-tree-panel {
-  background-color: #191c20;
-}
-
 .panel-content {
   height: 100%;
   width: 250px;
   overflow: hidden;
-  border-right: 2px solid rgb(249 250 251 / 0.2);
+  border-right: 1px solid rgba(148, 163, 184, 0.15);
   padding: 8px;
   transition: transform 0.3s ease;
-}
-
-.dark .panel-content {
-  border-right-color: rgba(255, 255, 255, 0.05);
+  background: transparent;
 }
 
 /* 欢迎界面 */

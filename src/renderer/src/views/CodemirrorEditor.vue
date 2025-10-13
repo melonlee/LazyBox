@@ -2,6 +2,7 @@
 import type { ComponentPublicInstance } from 'vue'
 import { altKey, altSign, ctrlKey, shiftKey, shiftSign } from '@renderer/config'
 import { useDisplayStore, useStore } from '@renderer/stores'
+import { useFileTreeStore } from '@renderer/stores/fileTree'
 import {
   checkImage,
   formatDoc,
@@ -12,6 +13,7 @@ import CodeMirror from 'codemirror'
 
 const store = useStore()
 const displayStore = useDisplayStore()
+const fileTreeStore = useFileTreeStore()
 const { isDark, output, editor, readingTime } = storeToRefs(store)
 
 const {
@@ -178,13 +180,11 @@ async function initEditor() {
     return
   }
 
-  if (!editorDom.value) {
-    editorDom.value = await window.$api.getPost(store.posts[store.currentPostIndex].title)
-  }
+  // 编辑器内容由文件树选择时加载，这里不需要预加载
   editor.value = CodeMirror.fromTextArea(editorDom, {
     mode: `text/x-markdown`,
     theme: isDark.value ? `darcula` : `xq-light`,
-    lineNumbers: false,
+    lineNumbers: true,
     lineWrapping: true,
     styleActiveLine: true,
     autoCloseBrackets: true,
@@ -226,10 +226,12 @@ async function initEditor() {
     clearTimeout(changeTimer.value)
     changeTimer.value = setTimeout(async () => {
       onEditorRefresh()
-      const content = e.getValue()
-      // store.posts[store.currentPostIndex].content = content
-      // 更新本地文件
-      await window.$api.updatePost(store.posts[store.currentPostIndex].title, content);
+      
+      // 保存到文件树系统
+      if (fileTreeStore.selectedNode?.type === 'file') {
+        const content = e.getValue()
+        await fileTreeStore.updateFileContent(fileTreeStore.selectedNode.path, content)
+      }
     }, 300)
   })
 
@@ -381,10 +383,9 @@ onMounted(async () => {
         <FileTreePanel />
         <div
           ref="codeMirrorWrapper"
-          class="codeMirror-wrapper flex-1"
+          class="codeMirror-wrapper flex-1 editor-border"
           :class="{
-            'order-1 border-l': !store.isEditOnLeft,
-            'border-r': store.isEditOnLeft,
+            'order-1': !store.isEditOnLeft,
           }"
         >
           <ContextMenu>
@@ -447,7 +448,7 @@ onMounted(async () => {
         <CssEditor class="order-2 flex-1" />
         <RightSlider class="order-2" />
       </div>
-      <footer class="h-[30px] flex select-none items-center justify-end px-4 text-[12px]">
+      <footer class="h-[30px] flex select-none items-center justify-end px-4 text-[12px] footer-stats">
         字数 {{ readingTime?.words }}， 阅读大约需 {{ Math.ceil(readingTime?.minutes ?? 0) }} 分钟
       </footer>
 
@@ -486,10 +487,19 @@ onMounted(async () => {
   height: 100vh;
   min-width: 100%;
   padding: 0;
+  background: #1a2332;
 }
 
 .container-main {
   overflow: hidden;
+  padding: 1rem;
+}
+
+.container-main-section {
+  background: rgba(51, 65, 85, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.1) !important;
+  border-radius: 12px !important;
 }
 
 #output-wrapper {
@@ -534,5 +544,56 @@ onMounted(async () => {
 
 .codeMirror-wrapper {
   overflow-x: auto;
+  background-color: transparent;
+}
+
+.codeMirror-wrapper :deep(.CodeMirror) {
+  background-color: transparent;
+  color: #e2e8f0;
+}
+
+.codeMirror-wrapper :deep(.CodeMirror-gutters) {
+  background-color: transparent;
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.codeMirror-wrapper :deep(.CodeMirror-linenumber) {
+  color: #94a3b8;
+  padding: 0 8px 0 5px;
+  min-width: 30px;
+  text-align: right;
+}
+
+.codeMirror-wrapper :deep(.CodeMirror-guttermarker) {
+  color: #a78bfa;
+}
+
+.codeMirror-wrapper :deep(.CodeMirror-activeline) {
+  .CodeMirror-linenumber {
+    color: #e2e8f0;
+    font-weight: 500;
+  }
+}
+
+.editor-border {
+  border-left: 1px solid rgba(148, 163, 184, 0.15);
+  border-right: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.preview-wrapper {
+  background-color: transparent;
+}
+
+.preview-wrapper :deep(.preview) {
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #1e293b;
+}
+
+.preview-wrapper :deep(#output-wrapper) {
+  background-color: transparent;
+}
+
+.footer-stats {
+  color: #94a3b8;
 }
 </style>

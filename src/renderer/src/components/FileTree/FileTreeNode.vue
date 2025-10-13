@@ -141,22 +141,15 @@ const paddingLeft = computed(() => `${props.level * 12 + 8}px`)
   transition: background-color 0.15s ease;
   border-radius: 4px;
   margin: 1px 4px;
+  color: #e2e8f0;
 }
 
 .file-tree-node:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.dark .file-tree-node:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(139, 92, 246, 0.15);
 }
 
 .file-tree-node.is-selected {
-  background-color: rgba(59, 130, 246, 0.15);
-}
-
-.dark .file-tree-node.is-selected {
-  background-color: rgba(59, 130, 246, 0.25);
+  background-color: rgba(139, 92, 246, 0.25);
 }
 
 .file-tree-node.is-dragging {
@@ -205,20 +198,16 @@ const paddingLeft = computed(() => `${props.level * 12 + 8}px`)
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #e2e8f0;
 }
 
 .node-count {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.45);
-  background-color: rgba(0, 0, 0, 0.06);
+  color: #94a3b8;
+  background-color: rgba(148, 163, 184, 0.15);
   padding: 0 6px;
   border-radius: 10px;
   line-height: 18px;
-}
-
-.dark .node-count {
-  color: rgba(255, 255, 255, 0.45);
-  background-color: rgba(255, 255, 255, 0.1);
 }
 </style>
 

@@ -297,21 +297,13 @@ defineExpose({
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #fff;
+  background-color: transparent;
   border-radius: 6px;
-}
-
-.dark .file-tree {
-  background-color: #1a1a1a;
 }
 
 .search-bar {
   padding: 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark .search-bar {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 .search-input-wrapper {
@@ -324,32 +316,28 @@ defineExpose({
 .search-icon {
   position: absolute;
   left: 8px;
-  color: rgba(0, 0, 0, 0.4);
+  color: #94a3b8;
   pointer-events: none;
-}
-
-.dark .search-icon {
-  color: rgba(255, 255, 255, 0.4);
 }
 
 .search-input {
   width: 100%;
   padding: 6px 32px 6px 32px;
   font-size: 13px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(148, 163, 184, 0.15);
   border-radius: 4px;
   outline: none;
   transition: border-color 0.15s ease;
-  background-color: transparent;
+  background-color: rgba(51, 65, 85, 0.3);
+  color: #e2e8f0;
 }
 
 .search-input:focus {
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(139, 92, 246, 0.5);
 }
 
-.dark .search-input {
-  border-color: rgba(255, 255, 255, 0.15);
-  color: white;
+.search-input::placeholder {
+  color: #94a3b8;
 }
 
 .clear-btn {
@@ -362,23 +350,14 @@ defineExpose({
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(0, 0, 0, 0.4);
+  color: #94a3b8;
   border-radius: 2px;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .clear-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.dark .clear-btn {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.dark .clear-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
 }
 
 .action-buttons {
@@ -395,12 +374,8 @@ defineExpose({
 .empty-state {
   padding: 24px;
   text-align: center;
-  color: rgba(0, 0, 0, 0.4);
+  color: #94a3b8;
   font-size: 13px;
-}
-
-.dark .empty-state {
-  color: rgba(255, 255, 255, 0.4);
 }
 
 /* 右键菜单 */
@@ -409,16 +384,12 @@ defineExpose({
   z-index: 9999;
   min-width: 180px;
   padding: 4px;
-  background-color: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: rgba(51, 65, 85, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.dark .context-menu {
-  background-color: #2a2a2a;
-  border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  color: #e2e8f0;
 }
 
 .context-menu-item {
@@ -430,14 +401,11 @@ defineExpose({
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.15s ease;
+  color: #e2e8f0;
 }
 
 .context-menu-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.dark .context-menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(139, 92, 246, 0.2);
 }
 
 .context-menu-item.danger {
@@ -447,11 +415,7 @@ defineExpose({
 .context-menu-divider {
   height: 1px;
   margin: 4px 0;
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.dark .context-menu-divider {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(148, 163, 184, 0.2);
 }
 </style>
 

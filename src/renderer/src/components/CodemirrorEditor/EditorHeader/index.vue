@@ -119,7 +119,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <header class="header-container h-10 flex items-center justify-between pl-20 pr-5 dark:bg-[#191c20] draggable-area">
+  <header class="header-container h-10 flex items-center justify-between pl-20 pr-5 draggable-area">
     <div class="flex no-drag items-center">
       <TooltipProvider :delay-duration="200">
         <Tooltip>
@@ -148,7 +148,7 @@ onMounted(() => {
         </Tooltip>
       </TooltipProvider>
 
-      <div class="h-4 w-[1px] bg-gray-300 mx-1" />
+      <div class="h-4 w-[1px] mx-1 header-divider" />
 
       <TooltipProvider :delay-duration="200" v-for="{ label, kbd, emitArgs, id } in formatItems" :key="label">
         <Tooltip>
@@ -177,7 +177,7 @@ onMounted(() => {
         </Tooltip>
       </TooltipProvider>
 
-      <div class="h-4 w-[1px] bg-gray-300 mx-1" />
+      <div class="h-4 w-[1px] mx-1 header-divider" />
 
       <TooltipProvider :delay-duration="200">
         <Tooltip>
@@ -209,21 +209,21 @@ onMounted(() => {
     </div>
 
     <div class="space-x-2 flex no-drag">
-      <div class="space-x-1 bg-background text-background-foreground mx-2 flex items-center border rounded-md">
-        <Button variant="ghost" class="shadow-none" @click="copy">
+      <div class="copy-button-group space-x-1 mx-2 flex items-center border rounded-md">
+        <Button variant="ghost" class="shadow-none copy-btn" @click="copy">
           复制
         </Button>
         <Separator orientation="vertical" class="h-5" />
         <DropdownMenu v-model="copyMode">
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" class="px-2 shadow-none">
-              <ChevronDownIcon class="text-secondary-foreground h-4 w-4" />
+            <Button variant="ghost" class="px-2 shadow-none copy-btn">
+              <ChevronDownIcon class="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             :align-offset="-5"
-            class="w-[200px]"
+            class="w-[200px] copy-dropdown"
           >
             <DropdownMenuRadioGroup v-model="copyMode">
               <DropdownMenuRadioItem value="txt">
@@ -243,6 +243,15 @@ onMounted(() => {
 </template>
 
 <style lang="less" scoped>
+.header-container {
+  background-color: transparent;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.header-divider {
+  background-color: rgba(148, 163, 184, 0.2);
+}
+
 .menubar {
   user-select: none;
 }
@@ -251,8 +260,48 @@ kbd {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #a8a8a8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
   padding: 1px 4px;
   border-radius: 2px;
+  color: #e2e8f0;
+}
+
+// 复制按钮组
+.copy-button-group {
+  background-color: rgba(51, 65, 85, 0.4);
+  border-color: rgba(148, 163, 184, 0.2);
+  
+  :deep(.copy-btn) {
+    color: #e2e8f0;
+    
+    &:hover {
+      background-color: rgba(139, 92, 246, 0.2);
+      color: #f1f5f9;
+    }
+  }
+  
+  :deep(svg) {
+    color: #94a3b8;
+  }
+}
+
+// 下拉菜单
+:deep(.copy-dropdown) {
+  background-color: rgba(51, 65, 85, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+  
+  [role="menuitemradio"] {
+    color: #e2e8f0;
+    
+    &:hover {
+      background-color: rgba(139, 92, 246, 0.2);
+    }
+    
+    &[data-state="checked"] {
+      background-color: rgba(139, 92, 246, 0.3);
+    }
+  }
 }
 </style>

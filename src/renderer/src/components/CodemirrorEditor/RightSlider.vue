@@ -40,7 +40,7 @@ const formatOptions = ref<Format[]>([`rgb`, `hex`, `hsl`, `hsv`])
 
 <template>
   <div
-    class="overflow-hidden border-l-2 border-gray/20 bg-white transition-width duration-300 dark:bg-[#191919] relative"
+    class="overflow-hidden border-l transition-width duration-300 right-slider-panel relative"
     :class="{
       'w-0 border-l-0': !store.isOpenRightSlider,
       'w-100': store.isOpenRightSlider,
@@ -298,5 +298,13 @@ const formatOptions = ref<Format[]>([`rgb`, `hex`, `hsl`, `hsv`])
 </template>
 
 <style scoped lang="less">
+.right-slider-panel {
+  background-color: transparent;
+  border-left-color: rgba(148, 163, 184, 0.15);
+}
 
+.right-slider-panel h2 {
+  color: #e2e8f0;
+  font-weight: 500;
+}
 </style>

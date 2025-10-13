@@ -104,7 +104,7 @@ function tabChanged(tabName: string | number) {
 
 <template>
   <transition enter-active-class="bounceInRight">
-    <div v-show="displayStore.isShowCssEditor" class="cssEditor-wrapper h-full flex flex-col border-l-2 border-gray/50">
+    <div v-show="displayStore.isShowCssEditor" class="cssEditor-wrapper h-full flex flex-col border-l css-editor-panel">
       <Tabs
         v-model="store.cssContentConfig.active"
         @update:model-value="tabChanged"
@@ -200,6 +200,11 @@ function tabChanged(tabName: string | number) {
 </template>
 
 <style lang="less" scoped>
+.css-editor-panel {
+  background-color: transparent;
+  border-left-color: rgba(148, 163, 184, 0.15);
+}
+
 .bounceInRight {
   animation-name: bounceInRight;
   animation-duration: 1s;

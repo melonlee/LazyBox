@@ -1,10 +1,10 @@
-@nightPreviewColor: #191919;
-@nightCodeMirrorColor: #191919;
+@nightPreviewColor: transparent;
+@nightCodeMirrorColor: transparent;
 @nightActiveCodeMirrorColor: gray;
-@nightFontColor: gray;
-@nightLinkColor: #8e9eb9;
-@nightLinkTextColor: #84868b;
-@nightLineColor: #84868b;
+@nightFontColor: #e2e8f0;
+@nightLinkColor: #a78bfa;
+@nightLinkTextColor: #94a3b8;
+@nightLineColor: rgba(148, 163, 184, 0.2);
 
 .dark {
   .container {
@@ -14,21 +14,34 @@
     .output_night {
       .preview {
         background-color: @nightPreviewColor;
-        box-shadow: 0 0 70px rgba(0, 0, 0, 0.3);
+        box-shadow: none;
       }
 
       .preview-wrapper {
         background-color: @nightCodeMirrorColor;
-        box-shadow: inset 0 0 0 1px rgba(233, 231, 231, 0.102);
+        box-shadow: none;
       }
 
       .code-snippet__fix {
-        background-color: rgb(238, 238, 238);
+        background-color: rgba(51, 65, 85, 0.6);
       }
     }
 
     ::-webkit-scrollbar {
-      background-color: @nightCodeMirrorColor;
+      background-color: transparent;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(26, 35, 50, 0.3);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.2);
+      border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, 0.4);
     }
   }
 }
