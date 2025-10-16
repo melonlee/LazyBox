@@ -22,7 +22,7 @@
 
 | 平台 | 下载链接 |
 |------|---------|
-| 🍎 macOS | [LazyBox-0.1.0.dmg](./dist/lazybox-0.1.0.dmg) |
+| 🍎 macOS | [LazyBox-0.1.0.dmg](https://github.com/melonlee/LazyBox/releases/download/v0.1.0/lazybox-0.1.0.dmg) |
 | 🪟 Windows | 即将推出 |
 | 🐧 Linux | 即将推出 |
 
