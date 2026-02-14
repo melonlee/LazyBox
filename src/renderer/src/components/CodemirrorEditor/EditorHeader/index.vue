@@ -9,9 +9,8 @@ import {
 import { useStore } from '@renderer/stores'
 import { useDisplayStore } from '@renderer/stores'
 import { addPrefix, processClipboardContent } from '@renderer/utils'
-import { ChevronDownIcon, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, SquarePen, Bold, Italic, Link, Strikethrough, Code, ClipboardType, UploadCloudIcon, TableIcon } from 'lucide-vue-next'
+import { ChevronDownIcon, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, SquarePen, Bold, Italic, Link, Strikethrough, Code, ClipboardType, UploadCloudIcon, TableIcon, Sparkles } from 'lucide-vue-next'
 import emitter from '@renderer/utils/event'
-import { AIAssistantPanel, AIStreamingPanel } from '@renderer/components/AI'
 
 const emit = defineEmits([`addFormat`, `formatContent`, `startCopy`, `endCopy`])
 
@@ -208,8 +207,22 @@ onMounted(() => {
 
       <div class="h-4 w-[1px] mx-1 header-divider" />
 
-      <!-- AI 助手面板 -->
-      <AIAssistantPanel />
+      <!-- AI 命令按钮 (Cursor 风格) -->
+      <TooltipProvider :delay-duration="200">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button variant="ghost" size="icon" @click="emitter.emit('ai:command-palette')">
+              <Sparkles class="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            AI 命令
+            <MenubarShortcut>
+              <kbd class="mx-1 bg-gray-2 dark:bg-stone-9">⌘K</kbd>
+            </MenubarShortcut>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <HelpDropdown />
     </div>

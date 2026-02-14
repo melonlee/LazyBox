@@ -10,6 +10,8 @@ import {
 } from '@renderer/utils'
 import fileApi from '@renderer/utils/file'
 import CodeMirror from 'codemirror'
+import AICommandPalette from '@renderer/components/AICommandPalette.vue'
+import { initInlineAI, getInlineAI } from '@renderer/utils/inline-ai'
 
 const store = useStore()
 const displayStore = useDisplayStore()
@@ -30,6 +32,11 @@ const {
   toggleShowInsertFormDialog,
   toggleShowUploadImgDialog,
 } = displayStore
+
+// AI 功能状态
+const showAICommandPalette = ref(false)
+const aiCommandQuery = ref('')
+const isAIWorking = ref(false)
 
 const isImgLoading = ref(false)
 const timeout = ref<NodeJS.Timeout>()
@@ -327,28 +334,42 @@ async function initEditor() {
         const selected = editor.getSelection()
         editor.replaceSelection(`~~${selected}~~`)
       },
-      [`${ctrlKey}-K`]: function italic(editor) {
-        const selected = editor.getSelection()
-        editor.replaceSelection(`[${selected}]()`)
+      [`${ctrlKey}-K`]: function openAICommand(editor) {
+        emitter.emit('ai:command-palette')
       },
       [`${ctrlKey}-E`]: function code(editor) {
         const selected = editor.getSelection()
         editor.replaceSelection(`\`${selected}\``)
       },
-      // AI 快捷键
-      [`${shiftKey}-${ctrlKey}-A`]: function aiContinue(editor) {
+      [`${ctrlKey}-L`]: function aiContinue(editor) {
         emitter.emit('ai:continue-writing')
       },
-      [`${shiftKey}-${ctrlKey}-P`]: function aiPolish(editor) {
-        emitter.emit('ai:polish')
+      // Tab - 接受 AI 建议
+      'Tab': function acceptAI(editor) {
+        const inlineAI = getInlineAI()
+        if (inlineAI && inlineAI.getState().suggestion) {
+          inlineAI.acceptSuggestion()
+          return
+        }
+        // 默认行为
+        if (editor.somethingSelected()) {
+          editor.indentSelection('add')
+        } else {
+          editor.replaceSelection('  ', 'end')
+        }
       },
-      [`${shiftKey}-${ctrlKey}-E`]: function aiExpand(editor) {
-        emitter.emit('ai:expand')
+      // Esc - 拒绝 AI 建议
+      'Esc': function cancelAI(editor) {
+        const inlineAI = getInlineAI()
+        if (inlineAI && inlineAI.getState().suggestion) {
+          inlineAI.clearGhost()
+          return
+        }
       },
       // 预备弃用
-      [`${ctrlKey}-L`]: function code(editor) {
+      [`${ctrlKey}-Link`]: function code(editor) {
         const selected = editor.getSelection()
-        editor.replaceSelection(`\`${selected}\``)
+        editor.replaceSelection(`[${selected}]()`)
       },
     },
   })
@@ -498,14 +519,236 @@ onMounted(async () => {
   await initEditor()
   onEditorRefresh()
   mdLocalToRemote()
-  
+
+  // 初始化 AI 内联编辑器
+  if (editor.value) {
+    initInlineAI(editor.value)
+  }
+
   // 延迟绑定滚动事件，确保DOM已渲染
   setTimeout(() => {
     if (store.viewMode === 'split') {
       leftAndRightScroll()
     }
   }, 300)
+
+  // AI 事件监听
+  emitter.on('ai:continue-writing', handleAIContinue)
+  emitter.on('ai:command-palette', () => {
+    showAICommandPalette.value = true
+  })
 })
+
+// AI 命令处理
+async function handleAICommand(commandId: string, params?: any) {
+  if (!editor.value) return
+
+  const inlineAI = getInlineAI()
+  if (!inlineAI) return
+
+  isAIWorking.value = true
+
+  try {
+    switch (commandId) {
+      case 'continue':
+        await handleAIContinue()
+        break
+
+      case 'polish-professional':
+        await handleAIPolish(params?.selectedText, 'professional')
+        break
+
+      case 'polish-casual':
+        await handleAIPolish(params?.selectedText, 'casual')
+        break
+
+      case 'polish-concise':
+        await handleAIPolish(params?.selectedText, 'concise')
+        break
+
+      case 'expand':
+        await handleAIExpand(params?.selectedText)
+        break
+
+      case 'summarize':
+        await handleAISummarize(params?.selectedText)
+        break
+
+      case 'outline':
+        showAICommandPalette.value = false
+        await handleAIGenerateOutline()
+        break
+
+      case 'analyze':
+        await handleAIAnalyze(params?.selectedText)
+        break
+
+      case 'translate-en':
+        await handleAITranslate(params?.selectedText, 'translate-en')
+        break
+
+      case 'translate-zh':
+        await handleAITranslate(params?.selectedText, 'translate-zh')
+        break
+    }
+  } finally {
+    isAIWorking.value = false
+  }
+}
+
+// AI 续写
+async function handleAIContinue() {
+  const inlineAI = getInlineAI()
+  if (!inlineAI || !editor.value) return
+
+  const content = editor.value.getValue()
+  const cursor = editor.value.getCursor()
+
+  await inlineAI.continueWriting({
+    content,
+    cursorPosition: cursor,
+    documentPath: store.currentFilePath || '',
+  })
+}
+
+// AI 润色
+async function handleAIPolish(text: string, style: string) {
+  if (!text || !editor.value) {
+    const selection = editor.value.getSelection()
+    if (!selection) {
+      toast.error('请先选中要润色的文本')
+      return
+    }
+    text = selection
+  }
+
+  const result = await window.$api.aiPolishText(text, style)
+
+  // 替换选中的文本
+  const cursor = editor.value.getCursor()
+  editor.value.replaceSelection(result)
+  toast.success('润色完成')
+}
+
+// AI 扩写
+async function handleAIExpand(text: string) {
+  if (!text || !editor.value) {
+    const selection = editor.value.getSelection()
+    if (!selection) {
+      toast.error('请先选中要扩写的文本')
+      return
+    }
+    text = selection
+  }
+
+  const result = await window.$api.aiExpandText(text)
+
+  // 在选中位置后插入
+  editor.value.replaceSelection(result)
+  toast.success('扩写完成')
+}
+
+// AI 摘要
+async function handleAISummarize(text: string) {
+  if (!text || !editor.value) {
+    const selection = editor.value.getSelection()
+    if (!selection) {
+      toast.error('请先选中要生成摘要的文本')
+      return
+    }
+    text = selection
+  }
+
+  const result = await window.$api.aiSummarizeText(text)
+
+  // 插入到光标位置
+  const cursor = editor.value.getCursor()
+  editor.value.replaceRange(`\n\n**摘要：**\n${result}\n`, cursor)
+  toast.success('摘要已生成')
+}
+
+// AI 生成大纲
+async function handleAIGenerateOutline() {
+  const topic = prompt('请输入文章主题：')
+  if (!topic) return
+
+  const result = await window.$api.aiGenerateOutline(topic, 'blog')
+
+  // 生成markdown大纲
+  let markdown = `# ${result.title}\n\n`
+
+  const formatSections = (sections: any[], level = 1) => {
+    for (const section of sections) {
+      markdown += `${'#'.repeat(level + 1)} ${section.title}\n\n`
+      if (section.children) {
+        formatSections(section.children, level + 1)
+      }
+    }
+  }
+
+  if (result.outline?.sections) {
+    formatSections(result.outline.sections)
+  }
+
+  // 替换编辑器内容
+  if (editor.value) {
+    editor.value.setValue(markdown)
+  }
+  toast.success('大纲已生成')
+}
+
+// AI 分析内容
+async function handleAIAnalyze(text: string) {
+  if (!text || !editor.value) {
+    const selection = editor.value.getSelection()
+    if (!selection) {
+      toast.error('请先选中要分析的文本')
+      return
+    }
+    text = selection
+  }
+
+  const result = await window.$api.aiAnalyzeContent(text)
+
+  // 显示分析结果
+  const analysisText = `
+## 内容分析
+
+**摘要：** ${result.summary}
+
+**关键词：** ${result.keywords.join('、')}
+
+**话题：** ${result.topics.join('、')}
+
+**情感：** ${result.sentiment}
+
+**可读性分数：** ${result.readabilityScore}/100
+
+**建议标签：** ${result.suggestedTags.join('、')}
+`
+
+  const cursor = editor.value.getCursor()
+  editor.value.replaceRange(analysisText, { line: editor.value.lineCount(), ch: 0 })
+  toast.success('分析完成')
+}
+
+// AI 翻译
+async function handleAITranslate(text: string, style: string) {
+  if (!text || !editor.value) {
+    const selection = editor.value.getSelection()
+    if (!selection) {
+      toast.error('请先选中要翻译的文本')
+      return
+    }
+    text = selection
+  }
+
+  const result = await window.$api.aiPolishText(text, style)
+
+  // 替换选中的文本
+  editor.value.replaceSelection(result)
+  toast.success('翻译完成')
+}
 </script>
 
 <template>
@@ -716,6 +959,16 @@ onMounted(async () => {
         </AlertDialogContent>
       </AlertDialog>
     </main>
+
+    <!-- AI 命令面板 (Cursor 风格) -->
+    <AICommandPalette
+      v-model="showAICommandPalette"
+      :selected-text="editor?.getSelection()"
+      @execute="handleAICommand"
+    />
+
+    <!-- Toaster -->
+    <Toaster rich-colors position="top-center" />
   </div>
 </template>
 
