@@ -107,6 +107,22 @@ const api = {
     ipcRenderer.invoke('ai:generate-image', { prompt, options }),
   aiSuggestImages: (content: string) =>
     ipcRenderer.invoke('ai:suggest-images', { content }),
+
+  // ========== 多平台发布 ==========
+  publishGetPlatforms: () =>
+    ipcRenderer.invoke('publish:get-platforms'),
+  publishToPlatforms: (content: string, metadata: any, platforms: string[]) =>
+    ipcRenderer.invoke('publish:to-platforms', { content, metadata, platforms }),
+  publishPreviewPlatform: (content: string, metadata: any, platform: string) =>
+    ipcRenderer.invoke('publish:preview-platform', { content, metadata, platform }),
+  publishSaveCredentials: (platform: string, credentials: any) =>
+    ipcRenderer.invoke('publish:save-credentials', { platform, credentials }),
+  publishValidateCredentials: (platform: string, credentials: any) =>
+    ipcRenderer.invoke('publish:validate-credentials', { platform, credentials }),
+  publishExportFile: (content: string, metadata: any, format: string, filePath: string) =>
+    ipcRenderer.invoke('publish:export-file', { content, metadata, format, filePath }),
+  publishSelectSavePath: () =>
+    ipcRenderer.invoke('publish:select-save-path'),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

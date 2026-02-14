@@ -11,6 +11,7 @@ import {
 import fileApi from '@renderer/utils/file'
 import CodeMirror from 'codemirror'
 import AICommandPalette from '@renderer/components/AICommandPalette.vue'
+import PublishDialog from '@renderer/components/PublishDialog.vue'
 import { initInlineAI, getInlineAI } from '@renderer/utils/inline-ai'
 
 const store = useStore()
@@ -37,6 +38,9 @@ const {
 const showAICommandPalette = ref(false)
 const aiCommandQuery = ref('')
 const isAIWorking = ref(false)
+
+// 发布功能状态
+const showPublishDialog = ref(false)
 
 const isImgLoading = ref(false)
 const timeout = ref<NodeJS.Timeout>()
@@ -537,6 +541,11 @@ onMounted(async () => {
   emitter.on('ai:command-palette', () => {
     showAICommandPalette.value = true
   })
+
+  // 发布事件监听
+  emitter.on('publish:open-dialog', () => {
+    showPublishDialog.value = true
+  })
 })
 
 // AI 命令处理
@@ -965,6 +974,12 @@ async function handleAITranslate(text: string, style: string) {
       v-model="showAICommandPalette"
       :selected-text="editor?.getSelection()"
       @execute="handleAICommand"
+    />
+
+    <!-- 多平台发布对话框 -->
+    <PublishDialog
+      v-model="showPublishDialog"
+      :content="editor?.getValue() || ''"
     />
 
     <!-- Toaster -->

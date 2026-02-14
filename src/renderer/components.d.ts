@@ -105,6 +105,7 @@ declare module 'vue' {
     PostInfo: typeof import('./src/components/CodemirrorEditor/EditorHeader/PostInfo.vue')['default']
     PostSlider: typeof import('./src/components/CodemirrorEditor/PostSlider.vue')['default']
     PostTaskDialog: typeof import('./src/components/CodemirrorEditor/EditorHeader/PostTaskDialog.vue')['default']
+    PublishDialog: typeof import('./src/components/PublishDialog.vue')['default']
     RightSlider: typeof import('./src/components/CodemirrorEditor/RightSlider.vue')['default']
     RunLoading: typeof import('./src/components/RunLoading.vue')['default']
     Select: typeof import('./src/components/ui/select/Select.vue')['default']

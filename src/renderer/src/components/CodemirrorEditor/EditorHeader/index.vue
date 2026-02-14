@@ -9,7 +9,7 @@ import {
 import { useStore } from '@renderer/stores'
 import { useDisplayStore } from '@renderer/stores'
 import { addPrefix, processClipboardContent } from '@renderer/utils'
-import { ChevronDownIcon, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, SquarePen, Bold, Italic, Link, Strikethrough, Code, ClipboardType, UploadCloudIcon, TableIcon, Sparkles } from 'lucide-vue-next'
+import { ChevronDownIcon, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, SquarePen, Bold, Italic, Link, Strikethrough, Code, ClipboardType, UploadCloudIcon, TableIcon, Sparkles, Globe } from 'lucide-vue-next'
 import emitter from '@renderer/utils/event'
 
 const emit = defineEmits([`addFormat`, `formatContent`, `startCopy`, `endCopy`])
@@ -228,6 +228,14 @@ onMounted(() => {
     </div>
 
     <div class="space-x-2 flex no-drag">
+      <!-- 发布按钮组 -->
+      <div class="publish-button-group space-x-1 mx-2 flex items-center border rounded-md">
+        <Button variant="ghost" class="shadow-none publish-btn" @click="emitter.emit('publish:open-dialog')">
+          <Globe class="h-4 w-4" />
+          <span class="hidden md:inline ml-1">发布</span>
+        </Button>
+      </div>
+
       <div class="copy-button-group space-x-1 mx-2 flex items-center border rounded-md">
         <Button variant="ghost" class="shadow-none copy-btn" @click="copy">
           复制
@@ -321,6 +329,25 @@ kbd {
     &[data-state="checked"] {
       background-color: rgba(139, 92, 246, 0.3);
     }
+  }
+}
+
+// 发布按钮组
+.publish-button-group {
+  background-color: rgba(51, 65, 85, 0.4);
+  border-color: rgba(148, 163, 184, 0.2);
+
+  :deep(.publish-btn) {
+    color: #e2e8f0;
+
+    &:hover {
+      background-color: rgba(139, 92, 246, 0.2);
+      color: #f1f5f9;
+    }
+  }
+
+  :deep(svg) {
+    color: #94a3b8;
   }
 }
 </style>
