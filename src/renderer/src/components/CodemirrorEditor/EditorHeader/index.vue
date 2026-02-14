@@ -10,7 +10,8 @@ import { useStore } from '@renderer/stores'
 import { useDisplayStore } from '@renderer/stores'
 import { addPrefix, processClipboardContent } from '@renderer/utils'
 import { ChevronDownIcon, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, SquarePen, Bold, Italic, Link, Strikethrough, Code, ClipboardType, UploadCloudIcon, TableIcon } from 'lucide-vue-next'
-import emitter from '@renderer/utils/event';
+import emitter from '@renderer/utils/event'
+import { AIAssistantPanel, AIStreamingPanel } from '@renderer/components/AI'
 
 const emit = defineEmits([`addFormat`, `formatContent`, `startCopy`, `endCopy`])
 
@@ -204,6 +205,11 @@ onMounted(() => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      <div class="h-4 w-[1px] mx-1 header-divider" />
+
+      <!-- AI 助手面板 -->
+      <AIAssistantPanel />
 
       <HelpDropdown />
     </div>
