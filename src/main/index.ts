@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import { menu } from './menu'
 import { initDocumentDir, defaultDocumentPath, defaultDocumentName } from './local'
 import { initIpcMain } from './ipc'
+import { initAIIpcHandlers } from './ipc-ai'
 
 function createWindow(): void {
   // Create the browser window.
@@ -63,8 +64,9 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
+  // IPC handlers
   initIpcMain();
+  initAIIpcHandlers();
 
   initDocumentDir();
 

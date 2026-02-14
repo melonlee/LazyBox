@@ -10,6 +10,7 @@ import {
 import { useDisplayStore, useStore } from '@renderer/stores'
 import { Moon, Sun, X } from 'lucide-vue-next'
 import PickColors, { type Format } from 'vue-pick-colors'
+import AISettings from '@renderer/components/AISettings.vue'
 
 const store = useStore()
 const displayStore = useDisplayStore()
@@ -59,6 +60,9 @@ const formatOptions = ref<Format[]>([`rgb`, `hex`, `hsl`, `hsv`])
         'translate-x-full': !store.isOpenRightSlider,
       }"
     >
+      <!-- AI 设置 -->
+      <AISettings />
+
       <div class="space-y-2">
         <h2>主题</h2>
         <div class="grid grid-cols-3 justify-items-center gap-2">

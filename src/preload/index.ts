@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { defaultDocumentName, defaultDocumentPath } from '../main/local'
 
 // Custom APIs for renderer
 const api = {
@@ -53,8 +52,61 @@ const api = {
     ipcRenderer.invoke('open-workspace-folder', { path }),
   
   // 窗口管理 API
-  setWindowTitle: (title: string) => 
-    ipcRenderer.invoke('set-window-title', { title })
+  setWindowTitle: (title: string) =>
+    ipcRenderer.invoke('set-window-title', { title }),
+
+  // ========== AI 配置管理 ==========
+  aiGetConfig: () => ipcRenderer.invoke('ai:get-config'),
+  aiSetConfig: (config: any) => ipcRenderer.invoke('ai:set-config', config),
+  aiIsEnabled: () => ipcRenderer.invoke('ai:is-enabled'),
+  aiGetServiceConfig: () => ipcRenderer.invoke('ai:get-service-config'),
+
+  // ========== AI 文本生成 ==========
+  aiGenerateText: (prompt: string, options?: any) =>
+    ipcRenderer.invoke('ai:generate-text', { prompt, options }),
+  aiStreamText: (prompt: string, options?: any) =>
+    ipcRenderer.invoke('ai:stream-text', { prompt, options }),
+
+  // 监听 AI 流式响应事件
+  onAIStreamChunk: (callback: (data: { text: string }) => void) =>
+    ipcRenderer.on('ai:stream-chunk', (_, data) => callback(data)),
+  onAIStreamEnd: (callback: () => void) =>
+    ipcRenderer.once('ai:stream-end', () => callback()),
+  onAIStreamError: (callback: (data: { error: string }) => void) =>
+    ipcRenderer.once('ai:stream-error', (_, data) => callback(data)),
+
+  // ========== AI 写作辅助 ==========
+  aiContinueWriting: (params: {
+    content: string;
+    cursorPosition: { line: number; ch: number };
+    selection: { start: { line: number; ch: number }; end: { line: number; ch: number } } | null;
+    documentPath: string;
+  }) => ipcRenderer.invoke('ai:continue-writing', params),
+
+  aiPolishText: (text: string, style: string) =>
+    ipcRenderer.invoke('ai:polish-text', { text, style }),
+  aiExpandText: (text: string, targetLength?: number) =>
+    ipcRenderer.invoke('ai:expand-text', { text, targetLength }),
+  aiSummarizeText: (text: string) =>
+    ipcRenderer.invoke('ai:summarize-text', { text }),
+
+  // ========== AI 大纲生成 ==========
+  aiGenerateOutline: (topic: string, style: string) =>
+    ipcRenderer.invoke('ai:generate-outline', { topic, style }),
+
+  // ========== AI 内容分析 ==========
+  aiAnalyzeContent: (content: string) =>
+    ipcRenderer.invoke('ai:analyze-content', { content }),
+  aiExtractKeywords: (content: string) =>
+    ipcRenderer.invoke('ai:extract-keywords', { content }),
+  aiSuggestTags: (content: string) =>
+    ipcRenderer.invoke('ai:suggest-tags', { content }),
+
+  // ========== AI 图片生成 ==========
+  aiGenerateImage: (prompt: string, options?: any) =>
+    ipcRenderer.invoke('ai:generate-image', { prompt, options }),
+  aiSuggestImages: (content: string) =>
+    ipcRenderer.invoke('ai:suggest-images', { content }),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
