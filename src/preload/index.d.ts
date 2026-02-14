@@ -445,6 +445,130 @@ interface LazyBoxAPI {
     similarity?: number
     error?: string
   }>
+
+  // ========== MCP 插件系统 ==========
+  mcpGetPlugins: () => Promise<{
+    success: boolean
+    plugins?: Array<{
+      id: string
+      name: string
+      version: string
+      description: string
+      enabled: boolean
+      tools: any[]
+    }>
+    error?: string
+  }>
+
+  mcpEnablePlugin: (pluginId: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  mcpDisablePlugin: (pluginId: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  mcpGetTools: () => Promise<{
+    success: boolean
+    tools?: any[]
+    error?: string
+  }>
+
+  mcpSearchTools: (query: string) => Promise<{
+    success: boolean
+    tools?: any[]
+    error?: string
+  }>
+
+  mcpExecuteTool: (toolName: string, params: any, context?: any) => Promise<{
+    success: boolean
+    result?: any
+    error?: string
+  }>
+
+  mcpGetResources: () => Promise<{
+    success: boolean
+    resources?: any[]
+    error?: string
+  }>
+
+  mcpGetResource: (uri: string, context?: any) => Promise<{
+    success: boolean
+    content?: string
+    error?: string
+  }>
+
+  // ========== SKILL 系统 ==========
+  skillGetAll: () => Promise<{
+    success: boolean
+    skills?: Array<{
+      id: string
+      name: string
+      description: string
+      category: 'writing' | 'editing' | 'analysis' | 'automation' | 'custom'
+      version: string
+      enabled: boolean
+      tags?: string[]
+      shortcut?: string
+    }>
+    error?: string
+  }>
+
+  skillGetByCategory: (category: string) => Promise<{
+    success: boolean
+    skills?: any[]
+    error?: string
+  }>
+
+  skillSearch: (query: string) => Promise<{
+    success: boolean
+    skills?: any[]
+    error?: string
+  }>
+
+  skillExecute: (skillId: string, context: any) => Promise<{
+    success: boolean
+    output?: any
+    error?: string
+    details?: {
+      stepsExecuted: number
+      executionTime: number
+    }
+  }>
+
+  skillEnable: (skillId: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  skillDisable: (skillId: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  skillImport: (skillDefinition: any) => Promise<{
+    success: boolean
+    skill?: any
+    error?: string
+  }>
+
+  skillExport: (skillId: string) => Promise<{
+    success: boolean
+    definition?: any
+    error?: string
+  }>
+
+  skillRegister: (skill: any) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  skillUnregister: (skillId: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
 }
 
 declare global {

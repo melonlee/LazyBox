@@ -10,6 +10,7 @@ import { initPublishIPCHandlers } from './ipc-publish'
 import { initImageIPCHandlers } from './ipc-image'
 import { initTemplateIPCHandlers } from './ipc-template'
 import { initVectorIPCHandlers } from './ipc-vector'
+import { initMCPSkillIPCHandlers } from './ipc-mcp-skill'
 
 function createWindow(): void {
   // Create the browser window.
@@ -75,6 +76,7 @@ app.whenReady().then(() => {
   initImageIPCHandlers();
   initTemplateIPCHandlers();
   initVectorIPCHandlers();
+  initMCPSkillIPCHandlers();
 
   initDocumentDir();
 

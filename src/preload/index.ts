@@ -177,6 +177,46 @@ const api = {
     ipcRenderer.invoke('vector:clear-store'),
   vectorSimilarity: (text1: string, text2: string) =>
     ipcRenderer.invoke('vector:similarity', { text1, text2 }),
+
+  // ========== MCP 插件系统 ==========
+  mcpGetPlugins: () =>
+    ipcRenderer.invoke('mcp:get-plugins'),
+  mcpEnablePlugin: (pluginId: string) =>
+    ipcRenderer.invoke('mcp:enable-plugin', { pluginId }),
+  mcpDisablePlugin: (pluginId: string) =>
+    ipcRenderer.invoke('mcp:disable-plugin', { pluginId }),
+  mcpGetTools: () =>
+    ipcRenderer.invoke('mcp:get-tools'),
+  mcpSearchTools: (query: string) =>
+    ipcRenderer.invoke('mcp:search-tools', { query }),
+  mcpExecuteTool: (toolName: string, params: any, context?: any) =>
+    ipcRenderer.invoke('mcp:execute-tool', { toolName, params, context }),
+  mcpGetResources: () =>
+    ipcRenderer.invoke('mcp:get-resources'),
+  mcpGetResource: (uri: string, context?: any) =>
+    ipcRenderer.invoke('mcp:get-resource', { uri, context }),
+
+  // ========== SKILL 系统 ==========
+  skillGetAll: () =>
+    ipcRenderer.invoke('skill:get-all'),
+  skillGetByCategory: (category: string) =>
+    ipcRenderer.invoke('skill:get-by-category', { category }),
+  skillSearch: (query: string) =>
+    ipcRenderer.invoke('skill:search', { query }),
+  skillExecute: (skillId: string, context: any) =>
+    ipcRenderer.invoke('skill:execute', { skillId, context }),
+  skillEnable: (skillId: string) =>
+    ipcRenderer.invoke('skill:enable', { skillId }),
+  skillDisable: (skillId: string) =>
+    ipcRenderer.invoke('skill:disable', { skillId }),
+  skillImport: (skillDefinition: any) =>
+    ipcRenderer.invoke('skill:import', { skillDefinition }),
+  skillExport: (skillId: string) =>
+    ipcRenderer.invoke('skill:export', { skillId }),
+  skillRegister: (skill: any) =>
+    ipcRenderer.invoke('skill:register', { skill }),
+  skillUnregister: (skillId: string) =>
+    ipcRenderer.invoke('skill:unregister', { skillId }),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
