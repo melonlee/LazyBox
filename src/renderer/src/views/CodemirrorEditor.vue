@@ -335,6 +335,16 @@ async function initEditor() {
         const selected = editor.getSelection()
         editor.replaceSelection(`\`${selected}\``)
       },
+      // AI 快捷键
+      [`${shiftKey}-${ctrlKey}-A`]: function aiContinue(editor) {
+        emitter.emit('ai:continue-writing')
+      },
+      [`${shiftKey}-${ctrlKey}-P`]: function aiPolish(editor) {
+        emitter.emit('ai:polish')
+      },
+      [`${shiftKey}-${ctrlKey}-E`]: function aiExpand(editor) {
+        emitter.emit('ai:expand')
+      },
       // 预备弃用
       [`${ctrlKey}-L`]: function code(editor) {
         const selected = editor.getSelection()

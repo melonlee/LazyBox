@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import { Sparkles, PenLine, Wand2, FileText, ListTree, Loader2 } from 'lucide-vue-next';
 import { Button } from '@renderer/components/ui/button';
+import emitter from '@renderer/utils/event';
 import {
   Dialog,
   DialogContent,
@@ -290,6 +291,19 @@ const openExpandDialog = () => {
   expandText.value = getSelectedText();
   showExpandDialog.value = true;
 };
+
+// 监听快捷键事件
+onMounted(() => {
+  emitter.on('ai:continue-writing', handleContinueWriting);
+  emitter.on('ai:polish', openPolishDialog);
+  emitter.on('ai:expand', openExpandDialog);
+});
+
+onUnmounted(() => {
+  emitter.off('ai:continue-writing', handleContinueWriting);
+  emitter.off('ai:polish', openPolishDialog);
+  emitter.off('ai:expand', openExpandDialog);
+});
 </script>
 
 <template>
