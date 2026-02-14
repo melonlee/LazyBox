@@ -8,6 +8,8 @@ import { initIpcMain } from './ipc'
 import { initAIIpcHandlers } from './ipc-ai'
 import { initPublishIPCHandlers } from './ipc-publish'
 import { initImageIPCHandlers } from './ipc-image'
+import { initTemplateIPCHandlers } from './ipc-template'
+import { initVectorIPCHandlers } from './ipc-vector'
 
 function createWindow(): void {
   // Create the browser window.
@@ -71,6 +73,8 @@ app.whenReady().then(() => {
   initAIIpcHandlers();
   initPublishIPCHandlers();
   initImageIPCHandlers();
+  initTemplateIPCHandlers();
+  initVectorIPCHandlers();
 
   initDocumentDir();
 

@@ -319,6 +319,132 @@ interface LazyBoxAPI {
     canceled: boolean
     filePath?: string
   }>
+
+  // ========== 向量存储与语义搜索 ==========
+  vectorSemanticSearch: (query: string, options?: {
+    topK?: number
+    minScore?: number
+    filter?: {
+      documentPath?: string
+      tags?: string[]
+      contentType?: string
+      dateRange?: { start: number; end: number }
+    }
+    rerank?: boolean
+  }) => Promise<{
+    success: boolean
+    results?: Array<{
+      chunk: {
+        id: string
+        documentId: string
+        documentPath: string
+        chunkIndex: number
+        content: string
+        metadata: any
+      }
+      score: number
+      relevance: 'high' | 'medium' | 'low'
+    }>
+    query?: string
+    totalFound?: number
+    error?: string
+  }>
+
+  vectorHybridSearch: (query: string, options?: any) => Promise<{
+    success: boolean
+    results?: any[]
+    error?: string
+  }>
+
+  vectorQuestionAnswer: (question: string, topK?: number) => Promise<{
+    success: boolean
+    answer?: string
+    sources?: any[]
+    confidence?: number
+    error?: string
+  }>
+
+  vectorIndexDocument: (content: string, metadata: {
+    title: string
+    path: string
+    contentType: string
+    tags?: string[]
+  }) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  vectorFindSimilar: (documentId: string, topK?: number) => Promise<{
+    success: boolean
+    results?: Array<{ documentId: string; score: string }>
+    error?: string
+  }>
+
+  vectorGraphStats: () => Promise<{
+    success: boolean
+    stats?: {
+      nodeCount: number
+      edgeCount: number
+      documentCount: number
+      tagCount: number
+      topicCount: number
+    }
+    error?: string
+  }>
+
+  vectorGetRelated: (documentId: string, maxDepth?: number) => Promise<{
+    success: boolean
+    direct?: string[]
+    indirect?: string[]
+    error?: string
+  }>
+
+  vectorGraphVisualization: () => Promise<{
+    success: boolean
+    data?: {
+      nodes: Array<{
+        id: string
+        label: string
+        type: string
+        data: any
+      }>
+      links: Array<{
+        source: string
+        target: string
+        strength: number
+        type: string
+      }>
+    }
+    error?: string
+  }>
+
+  vectorAnalyzeRelations: (documentId: string) => Promise<{
+    success: boolean
+    relations?: any[]
+    error?: string
+  }>
+
+  vectorGetChunks: (documentId: string) => Promise<{
+    success: boolean
+    chunks?: any[]
+    error?: string
+  }>
+
+  vectorRemoveDocument: (documentId: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  vectorClearStore: () => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  vectorSimilarity: (text1: string, text2: string) => Promise<{
+    success: boolean
+    similarity?: number
+    error?: string
+  }>
 }
 
 declare global {

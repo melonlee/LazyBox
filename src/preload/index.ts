@@ -149,6 +149,34 @@ const api = {
     ipcRenderer.invoke('publish:export-file', { content, metadata, format, filePath }),
   publishSelectSavePath: () =>
     ipcRenderer.invoke('publish:select-save-path'),
+
+  // ========== 向量存储与语义搜索 ==========
+  vectorSemanticSearch: (query: string, options?: any) =>
+    ipcRenderer.invoke('vector:semantic-search', { query, options }),
+  vectorHybridSearch: (query: string, options?: any) =>
+    ipcRenderer.invoke('vector:hybrid-search', { query, options }),
+  vectorQuestionAnswer: (question: string, topK?: number) =>
+    ipcRenderer.invoke('vector:question-answer', { question, topK }),
+  vectorIndexDocument: (content: string, metadata: any) =>
+    ipcRenderer.invoke('vector:index-document', { content, metadata }),
+  vectorFindSimilar: (documentId: string, topK?: number) =>
+    ipcRenderer.invoke('vector:find-similar', { documentId, topK }),
+  vectorGraphStats: () =>
+    ipcRenderer.invoke('vector:graph-stats'),
+  vectorGetRelated: (documentId: string, maxDepth?: number) =>
+    ipcRenderer.invoke('vector:get-related', { documentId, maxDepth }),
+  vectorGraphVisualization: () =>
+    ipcRenderer.invoke('vector:graph-visualization'),
+  vectorAnalyzeRelations: (documentId: string) =>
+    ipcRenderer.invoke('vector:analyze-relations', { documentId }),
+  vectorGetChunks: (documentId: string) =>
+    ipcRenderer.invoke('vector:get-chunks', { documentId }),
+  vectorRemoveDocument: (documentId: string) =>
+    ipcRenderer.invoke('vector:remove-document', { documentId }),
+  vectorClearStore: () =>
+    ipcRenderer.invoke('vector:clear-store'),
+  vectorSimilarity: (text1: string, text2: string) =>
+    ipcRenderer.invoke('vector:similarity', { text1, text2 }),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
