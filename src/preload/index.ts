@@ -102,11 +102,37 @@ const api = {
   aiSuggestTags: (content: string) =>
     ipcRenderer.invoke('ai:suggest-tags', { content }),
 
-  // ========== AI 图片生成 ==========
-  aiGenerateImage: (prompt: string, options?: any) =>
-    ipcRenderer.invoke('ai:generate-image', { prompt, options }),
-  aiSuggestImages: (content: string) =>
-    ipcRenderer.invoke('ai:suggest-images', { content }),
+  // ========== 图片生成 ==========
+  imageGenerate: (prompt: string, options?: any) =>
+    ipcRenderer.invoke('image:generate', { prompt, options }),
+  imageSaveApiKey: (apiKey: string) =>
+    ipcRenderer.invoke('image:save-api-key', { apiKey }),
+  imageGetApiKey: () =>
+    ipcRenderer.invoke('image:get-api-key'),
+  imageSuggest: (content: string) =>
+    ipcRenderer.invoke('image:suggest', { content }),
+  imageRemoveBackground: (imageData: string) =>
+    ipcRenderer.invoke('image:remove-background', { imageData }),
+  imageTransformStyle: (imageData: string, style: string) =>
+    ipcRenderer.invoke('image:transform-style', { imageData, style }),
+  imageSelectFile: () =>
+    ipcRenderer.invoke('image:select-file'),
+
+  // ========== 模板系统 ==========
+  templateGetAll: () =>
+    ipcRenderer.invoke('template:get-all'),
+  templateGetByCategory: (category: string) =>
+    ipcRenderer.invoke('template:get-by-category', { category }),
+  templateSearch: (query: string) =>
+    ipcRenderer.invoke('template:search', { query }),
+  templateApply: (content: string, templateId: string) =>
+    ipcRenderer.invoke('template:apply', { content, templateId }),
+  templateGetDetails: (templateId: string) =>
+    ipcRenderer.invoke('template:get-details', { templateId }),
+  templateAdd: (template: any) =>
+    ipcRenderer.invoke('template:add', { template }),
+  templateRemove: (templateId: string) =>
+    ipcRenderer.invoke('template:remove', { templateId }),
 
   // ========== 多平台发布 ==========
   publishGetPlatforms: () =>

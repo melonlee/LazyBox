@@ -7,6 +7,7 @@ import { initDocumentDir, defaultDocumentPath, defaultDocumentName } from './loc
 import { initIpcMain } from './ipc'
 import { initAIIpcHandlers } from './ipc-ai'
 import { initPublishIPCHandlers } from './ipc-publish'
+import { initImageIPCHandlers } from './ipc-image'
 
 function createWindow(): void {
   // Create the browser window.
@@ -69,6 +70,7 @@ app.whenReady().then(() => {
   initIpcMain();
   initAIIpcHandlers();
   initPublishIPCHandlers();
+  initImageIPCHandlers();
 
   initDocumentDir();
 

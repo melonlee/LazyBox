@@ -157,6 +157,168 @@ interface LazyBoxAPI {
     prompt: string
     reason: string
   }>>
+
+  // ========== 图片生成 ==========
+  imageGenerate: (prompt: string, options?: {
+    size?: '256x256' | '512x512' | '768x768' | '1024x1024'
+    style?: 'natural' | 'vivid' | 'precise'
+    quality?: 'standard' | 'hd'
+    steps?: number
+    cfg_scale?: number
+    seed?: number
+    negative_prompt?: string
+  }) => Promise<{
+    success: boolean
+    image?: {
+      url: string
+      base64?: string
+      width: number
+      height: number
+      seed: number
+      revised_prompt?: string
+    }
+    error?: string
+  }>
+
+  imageSaveApiKey: (apiKey: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  imageGetApiKey: () => Promise<{
+    success: boolean
+    apiKey: string
+  }>
+
+  imageSuggest: (content: string) => Promise<{
+    success: boolean
+    suggestions?: Array<{
+      position: number
+      prompt: string
+      reason: string
+    }>
+    error?: string
+  }>
+
+  imageRemoveBackground: (imageData: string) => Promise<{
+    success: boolean
+    result?: string
+    error?: string
+  }>
+
+  imageTransformStyle: (imageData: string, style: 'cartoon' | 'sketch' | 'oil' | 'watercolor') => Promise<{
+    success: boolean
+    result?: string
+    error?: string
+  }>
+
+  imageSelectFile: () => Promise<{
+    canceled: boolean
+    filePath?: string
+    base64?: string
+  }>
+
+  // ========== 模板系统 ==========
+  templateGetAll: () => Promise<{
+    success: boolean
+    templates?: Array<{
+      id: string
+      name: string
+      description: string
+      preview: string
+      category: 'blog' | 'academic' | 'technical' | 'news' | 'creative'
+      tags: string[]
+    }>
+    error?: string
+  }>
+
+  templateGetByCategory: (category: 'blog' | 'academic' | 'technical' | 'news' | 'creative') => Promise<{
+    success: boolean
+    templates?: any[]
+    error?: string
+  }>
+
+  templateSearch: (query: string) => Promise<{
+    success: boolean
+    templates?: any[]
+    error?: string
+  }>
+
+  templateApply: (content: string, templateId: string) => Promise<{
+    success: boolean
+    html?: string
+    error?: string
+  }>
+
+  templateGetDetails: (templateId: string) => Promise<{
+    success: boolean
+    template?: any
+    error?: string
+  }>
+
+  templateAdd: (template: any) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  templateRemove: (templateId: string) => Promise<{
+    success: boolean
+    removed: boolean
+    error?: string
+  }>
+
+  // ========== 多平台发布 ==========
+  publishGetPlatforms: () => Promise<{
+    success: boolean
+    platforms?: Array<{
+      id: string
+      name: string
+      icon: string
+      requiresAccount: boolean
+    }>
+    error?: string
+  }>
+
+  publishToPlatforms: (content: string, metadata: any, platforms: string[]) => Promise<{
+    success: boolean
+    results?: Array<{
+      platform: string
+      success: boolean
+      url?: string
+      error?: string
+    }>
+    error?: string
+  }>
+
+  publishPreviewPlatform: (content: string, metadata: any, platform: string) => Promise<{
+    success: boolean
+    preview?: {
+      content: string
+      metadata: any
+    }
+    error?: string
+  }>
+
+  publishSaveCredentials: (platform: string, credentials: any) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  publishValidateCredentials: (platform: string, credentials: any) => Promise<{
+    success: boolean
+    valid: boolean
+    error?: string
+  }>
+
+  publishExportFile: (content: string, metadata: any, format: string, filePath: string) => Promise<{
+    success: boolean
+    error?: string
+  }>
+
+  publishSelectSavePath: () => Promise<{
+    canceled: boolean
+    filePath?: string
+  }>
 }
 
 declare global {
